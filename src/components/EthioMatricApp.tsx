@@ -25,7 +25,7 @@ type Screen =
   | { name: "home" }
   | { name: "exams" }
   | { name: "subjectDetails"; subject: Subject }
-  | { name: "quiz"; subject: Subject; questions: Question[]; title: string; initialMode: "practice" | "exam" }
+  | { name: "quiz"; subject: Subject; questions: Question[]; title: string; initialMode: "practice" | "exam"; durationSeconds?: number }
   | { name: "progress" }
   | { name: "profile" }
   | { name: "notifications"; from: "home" | "profile" }
@@ -392,19 +392,35 @@ function ExamResults({questions,answers,subject,title,onRetry,onBack}:{
 
 // ─── Quiz Screen ──────────────────────────────────────────────────────────────
 
-function QuizScreen({questions,subject,title,initialMode,onBack}:{
+function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}:{
   questions:Question[];subject:Subject;title:string;
-  initialMode:"practice"|"exam";onBack:()=>void;
+  initialMode:"practice"|"exam";durationSeconds?:number;onBack:()=>void;
 }) {
   const [mode,setMode]=useState<"practice"|"exam">(initialMode);
   const [answers,setAnswers]=useState<Record<number,number>>({});
   const [flags,setFlags]=useState<Set<number>>(new Set());
   const [submitted,setSubmitted]=useState(false);
   const [navOpen,setNavOpen]=useState(false);
+  const [timeLeft,setTimeLeft]=useState<number>(durationSeconds??0);
   const questionRefs=useRef<(HTMLDivElement|null)[]>([]);
 
-  const reset=()=>{setAnswers({});setFlags(new Set());setSubmitted(false);};
+  const reset=()=>{setAnswers({});setFlags(new Set());setSubmitted(false);setTimeLeft(durationSeconds??0);};
   const handleModeChange=(m:"practice"|"exam")=>{setMode(m);reset();};
+
+  // Countdown timer for exam mode
+  useEffect(()=>{
+    if(mode!=="exam"||submitted||!durationSeconds) return;
+    if(timeLeft<=0){setSubmitted(true);return;}
+    const t=setTimeout(()=>setTimeLeft(s=>s-1),1000);
+    return()=>clearTimeout(t);
+  },[mode,submitted,timeLeft,durationSeconds]);
+
+  const formatTime=(s:number)=>{
+    const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+    return h>0
+      ?`${h}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`
+      :`${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+  };
   const toggleFlag=useCallback((id:number)=>{
     setFlags(p=>{const n=new Set(p);n.has(id)?n.delete(id):n.add(id);return n;});
   },[]);
@@ -491,7 +507,14 @@ function QuizScreen({questions,subject,title,initialMode,onBack}:{
             <p className="text-[11px] text-muted-foreground truncate">{subject.name}</p>
             <p className="text-sm font-bold text-foreground truncate">{title}</p>
           </div>
-          <ModeToggle mode={mode} onChange={handleModeChange} color={subject.color}/>
+          {mode==="exam"&&durationSeconds?(
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-2xl font-bold text-sm tabular-nums"
+              style={{background:timeLeft<=60?"#fee2e2":subject.color+"18",color:timeLeft<=60?"#dc2626":subject.color}}>
+              <Clock size={14}/>{formatTime(timeLeft)}
+            </div>
+          ):(
+            <ModeToggle mode={mode} onChange={handleModeChange} color={subject.color}/>
+          )}
         </div>
         <div className="rounded-2xl px-4 py-2.5 flex items-center gap-2.5" style={{background:subject.color+"12"}}>
           {mode==="practice"
@@ -578,50 +601,78 @@ function YearUnitContent({subject,year,onUnitSelect}:{
 
 function SubjectDetails({subject,onBack,onOpenQuiz}:{
   subject:Subject;onBack:()=>void;
-  onOpenQuiz:(questions:Question[],title:string,mode:"practice"|"exam")=>void;
+  onOpenQuiz:(questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number)=>void;
 }) {
   const [selectedYear,setSelectedYear]=useState("All Years");
   const [sheetPaper,setSheetPaper]=useState<ReturnType<typeof defaultPapers>[0]|null>(null);
+  const [container,setContainer]=useState<HTMLElement|null>(null);
   const papers=defaultPapers(subject.id);
 
-  const container=typeof document!=="undefined"?document.getElementById("phone-container"):null;
-  const SheetPortal=container&&sheetPaper?createPortal(
-    <>
-      <motion.div className="absolute inset-0 bg-black/50 z-40" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={()=>setSheetPaper(null)}/>
-      <motion.div className="absolute bottom-0 left-0 right-0 z-50 bg-card rounded-t-3xl p-6 border-t border-border"
-        initial={{y:"100%"}} animate={{y:0}} exit={{y:"100%"}} transition={{type:"spring",damping:28,stiffness:300}}>
-        <div className="w-10 h-1 bg-muted rounded-full mx-auto mb-5"/>
-        <p className="font-bold text-foreground">{subject.name} — {sheetPaper.year}</p>
-        <p className="text-sm text-muted-foreground mt-0.5">{sheetPaper.questions} questions · {sheetPaper.duration}</p>
-        {sheetPaper.score!==null&&<div className="mt-3 p-3 rounded-2xl" style={{background:subject.color+"12"}}><p className="text-sm font-semibold" style={{color:subject.color}}>Previous: {sheetPaper.score}%</p></div>}
-        <div className="mt-5 space-y-3">
-          <button onClick={()=>{setSheetPaper(null);onOpenQuiz(FULL_PAPER_QUESTIONS,`${subject.name} ${sheetPaper.year}`,"practice");}}
-            className="w-full p-4 rounded-2xl bg-card border border-border flex items-center gap-4 text-left active:scale-[0.98] transition-transform hover:border-primary/40 shadow-sm">
-            <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style={{background:subject.color}}>
-              <Zap size={20} className="text-white"/>
+  useEffect(()=>{
+    setContainer(document.getElementById("phone-container"));
+  },[]);
+
+  // Parse "3 hrs" / "2.5 hrs" → seconds
+  const parseDuration=(d:string):number=>{
+    const m=d.match(/([\d.]+)/);
+    return m?Math.round(parseFloat(m[1])*3600):3600;
+  };
+
+  const openMode=(mode:"practice"|"exam")=>{
+    if(!sheetPaper) return;
+    const seconds=mode==="exam"?parseDuration(sheetPaper.duration):undefined;
+    const title=`${subject.name} ${sheetPaper.year}`;
+    setSheetPaper(null);
+    onOpenQuiz(FULL_PAPER_QUESTIONS,title,mode,seconds);
+  };
+
+  const sheetContent=(
+    <AnimatePresence>
+      {sheetPaper&&(
+        <>
+          <motion.div key="ov" className="absolute inset-0 bg-black/50 z-40"
+            initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
+            onClick={()=>setSheetPaper(null)}/>
+          <motion.div key="sh" className="absolute bottom-0 left-0 right-0 z-50 bg-card rounded-t-3xl p-6 border-t border-border"
+            initial={{y:"100%"}} animate={{y:0}} exit={{y:"100%"}}
+            transition={{type:"spring",damping:28,stiffness:300}}>
+            <div className="w-10 h-1 bg-muted rounded-full mx-auto mb-5"/>
+            <p className="font-bold text-foreground">{subject.name} — {sheetPaper.year}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{sheetPaper.questions} questions · {sheetPaper.duration}</p>
+            {sheetPaper.score!==null&&<div className="mt-3 p-3 rounded-2xl" style={{background:subject.color+"12"}}><p className="text-sm font-semibold" style={{color:subject.color}}>Previous: {sheetPaper.score}%</p></div>}
+            <div className="mt-5 space-y-3">
+              <button onClick={()=>openMode("practice")}
+                className="w-full p-4 rounded-2xl bg-card border border-border flex items-center gap-4 text-left active:scale-[0.98] transition-transform hover:border-primary/40 shadow-sm">
+                <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style={{background:subject.color}}>
+                  <BookMarked size={20} className="text-white"/>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-foreground text-sm">📚 Practice Mode</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Answer questions with instant feedback</p>
+                </div>
+                <ChevronRight size={18} className="text-muted-foreground flex-shrink-0"/>
+              </button>
+              <button onClick={()=>openMode("exam")}
+                className="w-full p-4 rounded-2xl bg-card border border-border flex items-center gap-4 text-left active:scale-[0.98] transition-transform hover:border-primary/40 shadow-sm">
+                <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style={{background:subject.color+"22"}}>
+                  <Clock size={20} style={{color:subject.color}}/>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-foreground text-sm">📝 Exam Mode</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Take the exam like a real test</p>
+                </div>
+                <ChevronRight size={18} className="text-muted-foreground flex-shrink-0"/>
+              </button>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-foreground text-sm">Practice Mode</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Answer questions with instant feedback</p>
-            </div>
-            <ChevronRight size={18} className="text-muted-foreground flex-shrink-0"/>
-          </button>
-          <button onClick={()=>{setSheetPaper(null);onOpenQuiz(FULL_PAPER_QUESTIONS,`${subject.name} ${sheetPaper.year}`,"exam");}}
-            className="w-full p-4 rounded-2xl bg-card border border-border flex items-center gap-4 text-left active:scale-[0.98] transition-transform hover:border-primary/40 shadow-sm">
-            <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style={{background:subject.color+"22"}}>
-              <Clock size={20} style={{color:subject.color}}/>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-foreground text-sm">Exam Mode</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Take the exam like a real test</p>
-            </div>
-            <ChevronRight size={18} className="text-muted-foreground flex-shrink-0"/>
-          </button>
-        </div>
-        <button className="mt-4 w-full py-3 text-sm text-muted-foreground font-medium" onClick={()=>setSheetPaper(null)}>Cancel</button>
-      </motion.div>
-    </>,container
-  ):null;
+            <button className="mt-4 w-full py-3 text-sm text-muted-foreground font-medium" onClick={()=>setSheetPaper(null)}>Cancel</button>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+
+  const SheetPortal=container?createPortal(sheetContent,container):null;
+
 
   return (
     <>
@@ -680,7 +731,7 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
           )}
         </AnimatePresence>
       </div>
-      <AnimatePresence>{SheetPortal}</AnimatePresence>
+      {SheetPortal}
     </>
   );
 }
@@ -1220,8 +1271,8 @@ export default function App() {
     }
   };
 
-  const openQuiz=(subject:Subject,questions:Question[],title:string,mode:"practice"|"exam")=>{
-    setScreen({name:"quiz",subject,questions,title,initialMode:mode});
+  const openQuiz=(subject:Subject,questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number)=>{
+    setScreen({name:"quiz",subject,questions,title,initialMode:mode,durationSeconds});
   };
 
   const handleSaveSettings=(name:string,grade:string)=>{
@@ -1261,13 +1312,14 @@ export default function App() {
               {screen.name==="subjectDetails"&&(
                 <motion.div key="subjectDetails" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
                   <SubjectDetails subject={screen.subject} onBack={()=>setScreen({name:"exams"})}
-                    onOpenQuiz={(q,t,m)=>openQuiz(screen.subject,q,t,m)}/>
+                    onOpenQuiz={(q,t,m,d)=>openQuiz(screen.subject,q,t,m,d)}/>
                 </motion.div>
               )}
               {screen.name==="quiz"&&(
                 <motion.div key="quiz" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
                   <QuizScreen questions={screen.questions} subject={screen.subject} title={screen.title}
-                    initialMode={screen.initialMode} onBack={()=>setScreen({name:"subjectDetails",subject:screen.subject})}/>
+                    initialMode={screen.initialMode} durationSeconds={screen.durationSeconds}
+                    onBack={()=>setScreen({name:"subjectDetails",subject:screen.subject})}/>
                 </motion.div>
               )}
               {screen.name==="progress"&&(
