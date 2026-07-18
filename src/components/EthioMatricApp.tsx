@@ -25,7 +25,7 @@ type Screen =
   | { name: "home" }
   | { name: "exams" }
   | { name: "subjectDetails"; subject: Subject }
-  | { name: "quiz"; subject: Subject; questions: Question[]; title: string; initialMode: "practice" | "exam" }
+  | { name: "quiz"; subject: Subject; questions: Question[]; title: string; initialMode: "practice" | "exam"; durationSeconds?: number }
   | { name: "progress" }
   | { name: "profile" }
   | { name: "notifications"; from: "home" | "profile" }
