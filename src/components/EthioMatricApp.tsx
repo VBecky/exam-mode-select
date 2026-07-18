@@ -1271,7 +1271,7 @@ export default function App() {
               )}
               {screen.name==="notifications"&&(
                 <motion.div key="notifications" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
-                  <NotificationsScreen onBack={()=>setScreen({name:screen.from})}/>
+                  <NotificationsScreen onBack={()=>setScreen({name:screen.from as any})}/>
                 </motion.div>
               )}
               {screen.name==="helpSupport"&&(
