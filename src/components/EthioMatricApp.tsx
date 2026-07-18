@@ -1220,8 +1220,8 @@ export default function App() {
     }
   };
 
-  const openQuiz=(subject:Subject,questions:Question[],title:string,mode:"practice"|"exam")=>{
-    setScreen({name:"quiz",subject,questions,title,initialMode:mode});
+  const openQuiz=(subject:Subject,questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number)=>{
+    setScreen({name:"quiz",subject,questions,title,initialMode:mode,durationSeconds});
   };
 
   const handleSaveSettings=(name:string,grade:string)=>{
