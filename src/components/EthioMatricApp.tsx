@@ -708,7 +708,7 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
           )}
         </AnimatePresence>
       </div>
-      <AnimatePresence>{SheetPortal}</AnimatePresence>
+      {SheetPortal}
     </>
   );
 }
