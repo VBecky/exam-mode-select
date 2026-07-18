@@ -596,12 +596,26 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
         {sheetPaper.score!==null&&<div className="mt-3 p-3 rounded-2xl" style={{background:subject.color+"12"}}><p className="text-sm font-semibold" style={{color:subject.color}}>Previous: {sheetPaper.score}%</p></div>}
         <div className="mt-5 space-y-3">
           <button onClick={()=>{setSheetPaper(null);onOpenQuiz(FULL_PAPER_QUESTIONS,`${subject.name} ${sheetPaper.year}`,"practice");}}
-            className="w-full py-3.5 rounded-2xl font-semibold text-white flex items-center justify-center gap-2 active:scale-95 transition-transform" style={{background:subject.color}}>
-            <Zap size={18}/> Practice Mode
+            className="w-full p-4 rounded-2xl bg-card border border-border flex items-center gap-4 text-left active:scale-[0.98] transition-transform hover:border-primary/40 shadow-sm">
+            <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style={{background:subject.color}}>
+              <Zap size={20} className="text-white"/>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-foreground text-sm">Practice Mode</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Answer questions with instant feedback</p>
+            </div>
+            <ChevronRight size={18} className="text-muted-foreground flex-shrink-0"/>
           </button>
           <button onClick={()=>{setSheetPaper(null);onOpenQuiz(FULL_PAPER_QUESTIONS,`${subject.name} ${sheetPaper.year}`,"exam");}}
-            className="w-full py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2 active:scale-95 transition-transform" style={{background:subject.color+"18",color:subject.color}}>
-            <Clock size={18}/> Exam Mode
+            className="w-full p-4 rounded-2xl bg-card border border-border flex items-center gap-4 text-left active:scale-[0.98] transition-transform hover:border-primary/40 shadow-sm">
+            <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style={{background:subject.color+"22"}}>
+              <Clock size={20} style={{color:subject.color}}/>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-foreground text-sm">Exam Mode</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Take the exam like a real test</p>
+            </div>
+            <ChevronRight size={18} className="text-muted-foreground flex-shrink-0"/>
           </button>
         </div>
         <button className="mt-4 w-full py-3 text-sm text-muted-foreground font-medium" onClick={()=>setSheetPaper(null)}>Cancel</button>
