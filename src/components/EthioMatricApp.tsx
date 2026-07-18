@@ -392,19 +392,35 @@ function ExamResults({questions,answers,subject,title,onRetry,onBack}:{
 
 // ─── Quiz Screen ──────────────────────────────────────────────────────────────
 
-function QuizScreen({questions,subject,title,initialMode,onBack}:{
+function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}:{
   questions:Question[];subject:Subject;title:string;
-  initialMode:"practice"|"exam";onBack:()=>void;
+  initialMode:"practice"|"exam";durationSeconds?:number;onBack:()=>void;
 }) {
   const [mode,setMode]=useState<"practice"|"exam">(initialMode);
   const [answers,setAnswers]=useState<Record<number,number>>({});
   const [flags,setFlags]=useState<Set<number>>(new Set());
   const [submitted,setSubmitted]=useState(false);
   const [navOpen,setNavOpen]=useState(false);
+  const [timeLeft,setTimeLeft]=useState<number>(durationSeconds??0);
   const questionRefs=useRef<(HTMLDivElement|null)[]>([]);
 
-  const reset=()=>{setAnswers({});setFlags(new Set());setSubmitted(false);};
+  const reset=()=>{setAnswers({});setFlags(new Set());setSubmitted(false);setTimeLeft(durationSeconds??0);};
   const handleModeChange=(m:"practice"|"exam")=>{setMode(m);reset();};
+
+  // Countdown timer for exam mode
+  useEffect(()=>{
+    if(mode!=="exam"||submitted||!durationSeconds) return;
+    if(timeLeft<=0){setSubmitted(true);return;}
+    const t=setTimeout(()=>setTimeLeft(s=>s-1),1000);
+    return()=>clearTimeout(t);
+  },[mode,submitted,timeLeft,durationSeconds]);
+
+  const formatTime=(s:number)=>{
+    const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+    return h>0
+      ?`${h}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`
+      :`${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+  };
   const toggleFlag=useCallback((id:number)=>{
     setFlags(p=>{const n=new Set(p);n.has(id)?n.delete(id):n.add(id);return n;});
   },[]);
