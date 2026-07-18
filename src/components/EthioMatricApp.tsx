@@ -1261,13 +1261,14 @@ export default function App() {
               {screen.name==="subjectDetails"&&(
                 <motion.div key="subjectDetails" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
                   <SubjectDetails subject={screen.subject} onBack={()=>setScreen({name:"exams"})}
-                    onOpenQuiz={(q,t,m)=>openQuiz(screen.subject,q,t,m)}/>
+                    onOpenQuiz={(q,t,m,d)=>openQuiz(screen.subject,q,t,m,d)}/>
                 </motion.div>
               )}
               {screen.name==="quiz"&&(
                 <motion.div key="quiz" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
                   <QuizScreen questions={screen.questions} subject={screen.subject} title={screen.title}
-                    initialMode={screen.initialMode} onBack={()=>setScreen({name:"subjectDetails",subject:screen.subject})}/>
+                    initialMode={screen.initialMode} durationSeconds={screen.durationSeconds}
+                    onBack={()=>setScreen({name:"subjectDetails",subject:screen.subject})}/>
                 </motion.div>
               )}
               {screen.name==="progress"&&(
