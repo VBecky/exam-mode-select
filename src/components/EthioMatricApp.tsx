@@ -507,7 +507,14 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
             <p className="text-[11px] text-muted-foreground truncate">{subject.name}</p>
             <p className="text-sm font-bold text-foreground truncate">{title}</p>
           </div>
-          <ModeToggle mode={mode} onChange={handleModeChange} color={subject.color}/>
+          {mode==="exam"&&durationSeconds?(
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-2xl font-bold text-sm tabular-nums"
+              style={{background:timeLeft<=60?"#fee2e2":subject.color+"18",color:timeLeft<=60?"#dc2626":subject.color}}>
+              <Clock size={14}/>{formatTime(timeLeft)}
+            </div>
+          ):(
+            <ModeToggle mode={mode} onChange={handleModeChange} color={subject.color}/>
+          )}
         </div>
         <div className="rounded-2xl px-4 py-2.5 flex items-center gap-2.5" style={{background:subject.color+"12"}}>
           {mode==="practice"
