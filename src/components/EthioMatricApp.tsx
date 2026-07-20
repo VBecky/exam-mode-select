@@ -1011,7 +1011,8 @@ function HomeScreen({onNavigate,onNotifications,userName}:{
           <div className="flex justify-between text-xs mb-1.5 opacity-80"><span>Progress</span><span>38/65 answered</span></div>
           <div className="w-full h-1.5 rounded-full bg-white/30"><div className="h-full rounded-full bg-white" style={{width:"58%"}}/></div>
         </div>
-        <button className="mt-1 bg-white text-primary font-semibold text-sm px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95">
+        <button onClick={()=>onNavigate("exams",1)}
+          className="mt-1 bg-white text-primary font-semibold text-sm px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95">
           <Play size={14} fill="currentColor"/> Continue
         </button>
       </motion.div>
