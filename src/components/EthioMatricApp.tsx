@@ -1290,13 +1290,9 @@ export default function App() {
 
         {/* Scroll container */}
         <div className="absolute inset-0 overflow-y-auto scrollbar-hide" style={{paddingBottom:inQuiz?0:76}}>
-          {/* Status bar */}
-          <div className="flex items-center justify-between px-6 pt-4 pb-2">
-            <span className="text-xs font-semibold text-foreground">9:41</span>
-            <div className="w-4 h-2.5 rounded-sm border-2 border-foreground/60 relative">
-              <div className="absolute inset-0.5 right-0.5 bg-foreground/60 rounded-[1px] w-2/3"/>
-            </div>
-          </div>
+          {/* Status bar removed — native mobile status bar handles time/icons */}
+          <div className="pt-4"/>
+
 
           <div className="px-5">
             <AnimatePresence mode="wait">
