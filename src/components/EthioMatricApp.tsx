@@ -992,10 +992,25 @@ function SettingsScreen({onBack,initName,initGrade,onSave}:{
 
 // ─── Home Screen ──────────────────────────────────────────────────────────────
 
-function HomeScreen({onNavigate,onNotifications,userName}:{
+type LastPaper = {
+  subjectId:number; year:string; duration:string;
+  questionsCount:number; mode:"practice"|"exam"; ts:number;
+};
+
+function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
   onNavigate:(tab:string,subjectId?:number)=>void;
-  onNotifications:()=>void;userName:string;
+  onNotifications:()=>void;
+  onContinue:(lp:LastPaper)=>void;
+  lastPaper:LastPaper|null;
+  userName:string;
 }) {
+  const lpSubject=lastPaper?subjects.find(s=>s.id===lastPaper.subjectId):null;
+  const displaySubject=lpSubject??subjects[0];
+  const displayYear=lastPaper?.year??"2017 E.C.";
+  const displayQCount=lastPaper?.questionsCount??65;
+  const displayDuration=lastPaper?.duration??"3 hrs";
+  const displayMode=lastPaper?.mode??"practice";
+  const gradientFrom=displaySubject.color;
   return (
     <div className="flex flex-col gap-5 pb-6">
       <div className="flex items-start justify-between pt-2">
@@ -1009,19 +1024,28 @@ function HomeScreen({onNavigate,onNotifications,userName}:{
         </button>
       </div>
       <motion.div className="rounded-3xl p-5 text-white relative overflow-hidden" whileTap={{scale:0.98}}
-        style={{background:"linear-gradient(135deg,#6c3fcf 0%,#9061f9 100%)"}}>
+        style={{background:`linear-gradient(135deg,${gradientFrom} 0%,${gradientFrom}bb 100%)`}}>
         <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-10 bg-white"/>
         <div className="absolute -right-2 bottom-4 w-20 h-20 rounded-full opacity-10 bg-white"/>
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-white/20">In Progress</span>
-        <h2 className="mt-2 text-xl font-bold">Mathematics 2016 E.C.</h2>
-        <p className="text-sm opacity-80 mt-0.5">65 questions · 3 hrs · Grade 12</p>
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-white/20">
+          {lastPaper?`Resume · ${displayMode==="exam"?"Exam":"Practice"}`:"Get started"}
+        </span>
+        <h2 className="mt-2 text-xl font-bold">{displaySubject.name} {displayYear}</h2>
+        <p className="text-sm opacity-80 mt-0.5">{displayQCount} questions · {displayDuration}</p>
         <div className="mt-4 mb-3">
-          <div className="flex justify-between text-xs mb-1.5 opacity-80"><span>Progress</span><span>38/65 answered</span></div>
-          <div className="w-full h-1.5 rounded-full bg-white/30"><div className="h-full rounded-full bg-white" style={{width:"58%"}}/></div>
+          <div className="flex justify-between text-xs mb-1.5 opacity-80">
+            <span>{lastPaper?"Last opened":"Start your first paper"}</span>
+            {lastPaper&&<span>{new Date(lastPaper.ts).toLocaleDateString()}</span>}
+          </div>
+          <div className="w-full h-1.5 rounded-full bg-white/30"><div className="h-full rounded-full bg-white" style={{width:lastPaper?"100%":"10%"}}/></div>
         </div>
-        <button onClick={()=>onNavigate("exams",1)}
-          className="mt-1 bg-white text-primary font-semibold text-sm px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95">
-          <Play size={14} fill="currentColor"/> Continue
+        <button onClick={()=>{
+          if(lastPaper) onContinue(lastPaper);
+          else onNavigate("exams");
+        }}
+          className="mt-1 bg-white font-semibold text-sm px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95"
+          style={{color:displaySubject.color}}>
+          <Play size={14} fill="currentColor"/> {lastPaper?"Continue":"Browse exams"}
         </button>
       </motion.div>
       <div>
