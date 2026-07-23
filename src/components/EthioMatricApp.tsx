@@ -1337,7 +1337,13 @@ export default function App() {
             <AnimatePresence mode="wait">
               {screen.name==="home"&&(
                 <motion.div key="home" initial={{opacity:0,x:-12}} animate={{opacity:1,x:0}} exit={{opacity:0,x:12}} transition={{duration:0.18}}>
-                  <HomeScreen onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName}/>
+                  <HomeScreen onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName} lastPaper={lastPaper} onContinue={(lp)=>{
+                    const s=subjects.find(x=>x.id===lp.subjectId);
+                    if(!s){setScreen({name:"exams"});return;}
+                    const questions=getPaperQuestions(s.id,lp.year,s.name,lp.questionsCount);
+                    const seconds=lp.mode==="exam"?Math.round((parseFloat((lp.duration.match(/([\d.]+)/)||["1"])[1])||1)*3600):undefined;
+                    openQuiz(s,questions,`${s.name} ${lp.year}`,lp.mode,seconds);
+                  }}/>
                 </motion.div>
               )}
               {screen.name==="exams"&&(
