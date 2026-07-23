@@ -10,6 +10,7 @@ import {
   Send, CheckCheck, AlertCircle, MessageSquare, ChevronLeft,
   Pencil, Save,
 } from "lucide-react";
+import { getPaperQuestions } from "@/lib/exam-questions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
