@@ -10,6 +10,7 @@ import {
   Send, CheckCheck, AlertCircle, MessageSquare, ChevronLeft,
   Pencil, Save,
 } from "lucide-react";
+import { getPaperQuestions } from "@/lib/exam-questions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -622,8 +623,15 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
     if(!sheetPaper) return;
     const seconds=mode==="exam"?parseDuration(sheetPaper.duration):undefined;
     const title=`${subject.name} ${sheetPaper.year}`;
+    const questions=getPaperQuestions(subject.id,sheetPaper.year,subject.name,sheetPaper.questions);
+    try{
+      localStorage.setItem("lastPaper",JSON.stringify({
+        subjectId:subject.id,year:sheetPaper.year,duration:sheetPaper.duration,
+        questionsCount:sheetPaper.questions,mode,ts:Date.now(),
+      }));
+    }catch{}
     setSheetPaper(null);
-    onOpenQuiz(FULL_PAPER_QUESTIONS,title,mode,seconds);
+    onOpenQuiz(questions,title,mode,seconds);
   };
 
   const sheetContent=(
@@ -984,10 +992,25 @@ function SettingsScreen({onBack,initName,initGrade,onSave}:{
 
 // ─── Home Screen ──────────────────────────────────────────────────────────────
 
-function HomeScreen({onNavigate,onNotifications,userName}:{
+type LastPaper = {
+  subjectId:number; year:string; duration:string;
+  questionsCount:number; mode:"practice"|"exam"; ts:number;
+};
+
+function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
   onNavigate:(tab:string,subjectId?:number)=>void;
-  onNotifications:()=>void;userName:string;
+  onNotifications:()=>void;
+  onContinue:(lp:LastPaper)=>void;
+  lastPaper:LastPaper|null;
+  userName:string;
 }) {
+  const lpSubject=lastPaper?subjects.find(s=>s.id===lastPaper.subjectId):null;
+  const displaySubject=lpSubject??subjects[0];
+  const displayYear=lastPaper?.year??"2017 E.C.";
+  const displayQCount=lastPaper?.questionsCount??65;
+  const displayDuration=lastPaper?.duration??"3 hrs";
+  const displayMode=lastPaper?.mode??"practice";
+  const gradientFrom=displaySubject.color;
   return (
     <div className="flex flex-col gap-5 pb-6">
       <div className="flex items-start justify-between pt-2">
@@ -1001,19 +1024,28 @@ function HomeScreen({onNavigate,onNotifications,userName}:{
         </button>
       </div>
       <motion.div className="rounded-3xl p-5 text-white relative overflow-hidden" whileTap={{scale:0.98}}
-        style={{background:"linear-gradient(135deg,#6c3fcf 0%,#9061f9 100%)"}}>
+        style={{background:`linear-gradient(135deg,${gradientFrom} 0%,${gradientFrom}bb 100%)`}}>
         <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-10 bg-white"/>
         <div className="absolute -right-2 bottom-4 w-20 h-20 rounded-full opacity-10 bg-white"/>
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-white/20">In Progress</span>
-        <h2 className="mt-2 text-xl font-bold">Mathematics 2016 E.C.</h2>
-        <p className="text-sm opacity-80 mt-0.5">65 questions · 3 hrs · Grade 12</p>
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-white/20">
+          {lastPaper?`Resume · ${displayMode==="exam"?"Exam":"Practice"}`:"Get started"}
+        </span>
+        <h2 className="mt-2 text-xl font-bold">{displaySubject.name} {displayYear}</h2>
+        <p className="text-sm opacity-80 mt-0.5">{displayQCount} questions · {displayDuration}</p>
         <div className="mt-4 mb-3">
-          <div className="flex justify-between text-xs mb-1.5 opacity-80"><span>Progress</span><span>38/65 answered</span></div>
-          <div className="w-full h-1.5 rounded-full bg-white/30"><div className="h-full rounded-full bg-white" style={{width:"58%"}}/></div>
+          <div className="flex justify-between text-xs mb-1.5 opacity-80">
+            <span>{lastPaper?"Last opened":"Start your first paper"}</span>
+            {lastPaper&&<span>{new Date(lastPaper.ts).toLocaleDateString()}</span>}
+          </div>
+          <div className="w-full h-1.5 rounded-full bg-white/30"><div className="h-full rounded-full bg-white" style={{width:lastPaper?"100%":"10%"}}/></div>
         </div>
-        <button onClick={()=>onNavigate("exams",1)}
-          className="mt-1 bg-white text-primary font-semibold text-sm px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95">
-          <Play size={14} fill="currentColor"/> Continue
+        <button onClick={()=>{
+          if(lastPaper) onContinue(lastPaper);
+          else onNavigate("exams");
+        }}
+          className="mt-1 bg-white font-semibold text-sm px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95"
+          style={{color:displaySubject.color}}>
+          <Play size={14} fill="currentColor"/> {lastPaper?"Continue":"Browse exams"}
         </button>
       </motion.div>
       <div>
@@ -1253,6 +1285,13 @@ export default function App() {
   const [darkMode,setDarkMode]=useState(()=>{try{return localStorage.getItem("darkMode")==="true";}catch{return false;}});
   const [userName,setUserName]=useState(()=>{try{return localStorage.getItem("userName")||"Abebe Girma";}catch{return "Abebe Girma";}});
   const [userGrade,setUserGrade]=useState(()=>{try{return localStorage.getItem("userGrade")||"12";}catch{return "12";}});
+  const [lastPaper,setLastPaper]=useState<LastPaper|null>(()=>{try{const s=localStorage.getItem("lastPaper");return s?JSON.parse(s):null;}catch{return null;}});
+
+  // Refresh lastPaper whenever we return to home (in case a quiz was just opened)
+  useEffect(()=>{
+    if(screen.name!=="home") return;
+    try{const s=localStorage.getItem("lastPaper");setLastPaper(s?JSON.parse(s):null);}catch{}
+  },[screen.name]);
 
   useEffect(()=>{try{localStorage.setItem("darkMode",String(darkMode));}catch{}},  [darkMode]);
   useEffect(()=>{try{localStorage.setItem("stream",stream);}catch{}},              [stream]);
@@ -1298,7 +1337,13 @@ export default function App() {
             <AnimatePresence mode="wait">
               {screen.name==="home"&&(
                 <motion.div key="home" initial={{opacity:0,x:-12}} animate={{opacity:1,x:0}} exit={{opacity:0,x:12}} transition={{duration:0.18}}>
-                  <HomeScreen onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName}/>
+                  <HomeScreen onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName} lastPaper={lastPaper} onContinue={(lp)=>{
+                    const s=subjects.find(x=>x.id===lp.subjectId);
+                    if(!s){setScreen({name:"exams"});return;}
+                    const questions=getPaperQuestions(s.id,lp.year,s.name,lp.questionsCount);
+                    const seconds=lp.mode==="exam"?Math.round((parseFloat((lp.duration.match(/([\d.]+)/)||["1"])[1])||1)*3600):undefined;
+                    openQuiz(s,questions,`${s.name} ${lp.year}`,lp.mode,seconds);
+                  }}/>
                 </motion.div>
               )}
               {screen.name==="exams"&&(
