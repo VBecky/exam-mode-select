@@ -1285,6 +1285,13 @@ export default function App() {
   const [darkMode,setDarkMode]=useState(()=>{try{return localStorage.getItem("darkMode")==="true";}catch{return false;}});
   const [userName,setUserName]=useState(()=>{try{return localStorage.getItem("userName")||"Abebe Girma";}catch{return "Abebe Girma";}});
   const [userGrade,setUserGrade]=useState(()=>{try{return localStorage.getItem("userGrade")||"12";}catch{return "12";}});
+  const [lastPaper,setLastPaper]=useState<LastPaper|null>(()=>{try{const s=localStorage.getItem("lastPaper");return s?JSON.parse(s):null;}catch{return null;}});
+
+  // Refresh lastPaper whenever we return to home (in case a quiz was just opened)
+  useEffect(()=>{
+    if(screen.name!=="home") return;
+    try{const s=localStorage.getItem("lastPaper");setLastPaper(s?JSON.parse(s):null);}catch{}
+  },[screen.name]);
 
   useEffect(()=>{try{localStorage.setItem("darkMode",String(darkMode));}catch{}},  [darkMode]);
   useEffect(()=>{try{localStorage.setItem("stream",stream);}catch{}},              [stream]);
