@@ -623,8 +623,15 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
     if(!sheetPaper) return;
     const seconds=mode==="exam"?parseDuration(sheetPaper.duration):undefined;
     const title=`${subject.name} ${sheetPaper.year}`;
+    const questions=getPaperQuestions(subject.id,sheetPaper.year,subject.name,sheetPaper.questions);
+    try{
+      localStorage.setItem("lastPaper",JSON.stringify({
+        subjectId:subject.id,year:sheetPaper.year,duration:sheetPaper.duration,
+        questionsCount:sheetPaper.questions,mode,ts:Date.now(),
+      }));
+    }catch{}
     setSheetPaper(null);
-    onOpenQuiz(FULL_PAPER_QUESTIONS,title,mode,seconds);
+    onOpenQuiz(questions,title,mode,seconds);
   };
 
   const sheetContent=(
