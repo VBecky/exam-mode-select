@@ -1344,7 +1344,7 @@ export default function App() {
         style={{height:"100dvh",background:"var(--background)",fontFamily:"'Inter',sans-serif",overflow:"hidden"}}>
 
         {/* Scroll container */}
-        <div className="absolute inset-0 overflow-y-auto scrollbar-hide" style={{paddingBottom:inQuiz?0:76}}>
+        <div ref={scrollRef} className="absolute inset-0 overflow-y-auto scrollbar-hide" style={{paddingBottom:inQuiz?0:76}}>
           {/* Status bar removed — native mobile status bar handles time/icons */}
           <div className="pt-4"/>
 
