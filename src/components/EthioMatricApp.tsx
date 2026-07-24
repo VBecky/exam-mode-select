@@ -319,6 +319,16 @@ function ExamResults({questions,answers,subject,title,onRetry,onBack}:{
   const pct=total?Math.round((correct/total)*100):0;
   return (
     <div className="flex flex-col gap-5 pb-10">
+      <div className="flex items-center justify-between pt-2">
+        <button onClick={onBack} className="w-9 h-9 rounded-2xl bg-card border border-border flex items-center justify-center shadow-sm">
+          <ArrowLeft size={18} className="text-foreground"/>
+        </button>
+        <button onClick={onRetry}
+          className="px-4 py-2 rounded-2xl font-semibold text-white flex items-center gap-2 active:scale-95 transition-transform text-sm"
+          style={{background:subject.color}}>
+          <RotateCcw size={14}/> Retry
+        </button>
+      </div>
       <div className="rounded-3xl p-6 text-white text-center" style={{background:`linear-gradient(135deg,${subject.color},${subject.color}bb)`}}>
         <p className="text-sm opacity-75 font-medium">{title}</p>
         <div className="text-6xl font-extrabold mt-2">{pct}%</div>
@@ -332,6 +342,7 @@ function ExamResults({questions,answers,subject,title,onRetry,onBack}:{
         </div>
         {attempted<total&&<p className="mt-3 text-xs bg-white/20 rounded-full px-3 py-1 inline-block">{total-attempted} unanswered</p>}
       </div>
+
       <p className="font-bold text-sm text-foreground">Answer Review</p>
       <div className="space-y-4">
         {questions.map((q,qi)=>{
