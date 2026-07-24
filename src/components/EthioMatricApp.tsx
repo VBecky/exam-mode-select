@@ -207,9 +207,9 @@ const scoreHistory = [
   {month:"May",score:75},{month:"Jun",score:82},{month:"Jul",score:88},
 ];
 const achievementsList = [
-  {icon:"🔥",label:"7-Day Streak",earned:true},{icon:"🏆",label:"Top Scorer",earned:true},
-  {icon:"📚",label:"10 Papers Done",earned:true},{icon:"⚡",label:"Speed Demon",earned:false},
-  {icon:"🎯",label:"Perfect Score",earned:false},
+  {icon:"🔥",label:"7-Day Streak",earned:true},
+  {icon:"📚",label:"10 Papers Done",earned:true},
+  {icon:"⚡",label:"Speed Demon",earned:false},
 ];
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
@@ -319,6 +319,16 @@ function ExamResults({questions,answers,subject,title,onRetry,onBack}:{
   const pct=total?Math.round((correct/total)*100):0;
   return (
     <div className="flex flex-col gap-5 pb-10">
+      <div className="flex items-center justify-between pt-2">
+        <button onClick={onBack} className="w-9 h-9 rounded-2xl bg-card border border-border flex items-center justify-center shadow-sm">
+          <ArrowLeft size={18} className="text-foreground"/>
+        </button>
+        <button onClick={onRetry}
+          className="px-4 py-2 rounded-2xl font-semibold text-white flex items-center gap-2 active:scale-95 transition-transform text-sm"
+          style={{background:subject.color}}>
+          <RotateCcw size={14}/> Retry
+        </button>
+      </div>
       <div className="rounded-3xl p-6 text-white text-center" style={{background:`linear-gradient(135deg,${subject.color},${subject.color}bb)`}}>
         <p className="text-sm opacity-75 font-medium">{title}</p>
         <div className="text-6xl font-extrabold mt-2">{pct}%</div>
@@ -332,6 +342,7 @@ function ExamResults({questions,answers,subject,title,onRetry,onBack}:{
         </div>
         {attempted<total&&<p className="mt-3 text-xs bg-white/20 rounded-full px-3 py-1 inline-block">{total-attempted} unanswered</p>}
       </div>
+
       <p className="font-bold text-sm text-foreground">Answer Review</p>
       <div className="space-y-4">
         {questions.map((q,qi)=>{
@@ -415,6 +426,13 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
     const t=setTimeout(()=>setTimeLeft(s=>s-1),1000);
     return()=>clearTimeout(t);
   },[mode,submitted,timeLeft,durationSeconds]);
+
+  // When exam is submitted, scroll results back to the top (question 1)
+  useEffect(()=>{
+    if(!submitted) return;
+    const el=document.getElementById("phone-container")?.querySelector<HTMLDivElement>(".overflow-y-auto");
+    if(el) el.scrollTop=0;
+  },[submitted]);
 
   const formatTime=(s:number)=>{
     const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
@@ -1287,11 +1305,16 @@ export default function App() {
   const [userGrade,setUserGrade]=useState(()=>{try{return localStorage.getItem("userGrade")||"12";}catch{return "12";}});
   const [lastPaper,setLastPaper]=useState<LastPaper|null>(()=>{try{const s=localStorage.getItem("lastPaper");return s?JSON.parse(s):null;}catch{return null;}});
 
-  // Refresh lastPaper whenever we return to home (in case a quiz was just opened)
+  const scrollRef=useRef<HTMLDivElement>(null);
+
+  // Refresh lastPaper whenever we return to home, and reset scroll on any screen change
   useEffect(()=>{
-    if(screen.name!=="home") return;
-    try{const s=localStorage.getItem("lastPaper");setLastPaper(s?JSON.parse(s):null);}catch{}
+    if(scrollRef.current) scrollRef.current.scrollTop=0;
+    if(screen.name==="home"){
+      try{const s=localStorage.getItem("lastPaper");setLastPaper(s?JSON.parse(s):null);}catch{}
+    }
   },[screen.name]);
+
 
   useEffect(()=>{try{localStorage.setItem("darkMode",String(darkMode));}catch{}},  [darkMode]);
   useEffect(()=>{try{localStorage.setItem("stream",stream);}catch{}},              [stream]);
@@ -1328,7 +1351,7 @@ export default function App() {
         style={{height:"100dvh",background:"var(--background)",fontFamily:"'Inter',sans-serif",overflow:"hidden"}}>
 
         {/* Scroll container */}
-        <div className="absolute inset-0 overflow-y-auto scrollbar-hide" style={{paddingBottom:inQuiz?0:76}}>
+        <div ref={scrollRef} className="absolute inset-0 overflow-y-auto scrollbar-hide" style={{paddingBottom:inQuiz?0:76}}>
           {/* Status bar removed — native mobile status bar handles time/icons */}
           <div className="pt-4"/>
 
