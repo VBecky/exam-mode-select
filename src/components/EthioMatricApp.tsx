@@ -427,6 +427,13 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
     return()=>clearTimeout(t);
   },[mode,submitted,timeLeft,durationSeconds]);
 
+  // When exam is submitted, scroll results back to the top (question 1)
+  useEffect(()=>{
+    if(!submitted) return;
+    const el=document.getElementById("phone-container")?.querySelector<HTMLDivElement>(".overflow-y-auto");
+    if(el) el.scrollTop=0;
+  },[submitted]);
+
   const formatTime=(s:number)=>{
     const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
     return h>0
