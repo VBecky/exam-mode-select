@@ -207,9 +207,9 @@ const scoreHistory = [
   {month:"May",score:75},{month:"Jun",score:82},{month:"Jul",score:88},
 ];
 const achievementsList = [
-  {icon:"🔥",label:"7-Day Streak",earned:true},{icon:"🏆",label:"Top Scorer",earned:true},
-  {icon:"📚",label:"10 Papers Done",earned:true},{icon:"⚡",label:"Speed Demon",earned:false},
-  {icon:"🎯",label:"Perfect Score",earned:false},
+  {icon:"🔥",label:"7-Day Streak",earned:true},
+  {icon:"📚",label:"10 Papers Done",earned:true},
+  {icon:"⚡",label:"Speed Demon",earned:false},
 ];
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
