@@ -1298,11 +1298,16 @@ export default function App() {
   const [userGrade,setUserGrade]=useState(()=>{try{return localStorage.getItem("userGrade")||"12";}catch{return "12";}});
   const [lastPaper,setLastPaper]=useState<LastPaper|null>(()=>{try{const s=localStorage.getItem("lastPaper");return s?JSON.parse(s):null;}catch{return null;}});
 
-  // Refresh lastPaper whenever we return to home (in case a quiz was just opened)
+  const scrollRef=useRef<HTMLDivElement>(null);
+
+  // Refresh lastPaper whenever we return to home, and reset scroll on any screen change
   useEffect(()=>{
-    if(screen.name!=="home") return;
-    try{const s=localStorage.getItem("lastPaper");setLastPaper(s?JSON.parse(s):null);}catch{}
+    if(scrollRef.current) scrollRef.current.scrollTop=0;
+    if(screen.name==="home"){
+      try{const s=localStorage.getItem("lastPaper");setLastPaper(s?JSON.parse(s):null);}catch{}
+    }
   },[screen.name]);
+
 
   useEffect(()=>{try{localStorage.setItem("darkMode",String(darkMode));}catch{}},  [darkMode]);
   useEffect(()=>{try{localStorage.setItem("stream",stream);}catch{}},              [stream]);
