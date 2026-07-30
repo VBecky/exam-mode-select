@@ -418,9 +418,55 @@ const PAPER_QUESTIONS: Record<number, Record<string, Question[]>> = {
   9: { "2017 E.C.": SAT_2017 },
 };
 
+// ─── Supabase-backed question bank ────────────────────────────────────────────
+// Questions live in the `exam_questions` table. They are fetched once when the
+// app boots and cached here; the local sets above are the offline fallback.
+
+const REMOTE_QUESTIONS: Record<number, Record<string, Question[]>> = {};
+let remoteLoaded = false;
+let remoteLoading: Promise<void> | null = null;
+
+export async function loadRemoteQuestions(): Promise<void> {
+  if (remoteLoaded) return;
+  if (remoteLoading) return remoteLoading;
+
+  remoteLoading = (async () => {
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data, error } = await supabase
+        .from("exam_questions")
+        .select("subject_id, year, position, text, options, answer, explanation")
+        .order("subject_id")
+        .order("year")
+        .order("position");
+
+      if (error) throw error;
+
+      for (const row of data ?? []) {
+        const bySubject = (REMOTE_QUESTIONS[row.subject_id] ??= {});
+        const list = (bySubject[row.year] ??= []);
+        list.push({
+          id: row.position,
+          text: row.text,
+          options: Array.isArray(row.options) ? (row.options as string[]) : [],
+          answer: row.answer,
+          explanation: row.explanation ?? "",
+        });
+      }
+      remoteLoaded = true;
+    } catch (err) {
+      console.error("[exam-questions] failed to load from Supabase:", err);
+    } finally {
+      remoteLoading = null;
+    }
+  })();
+
+  return remoteLoading;
+}
+
 /**
- * Fetch the real questions for a given subject + year. Falls back to a
- * generated placeholder set when a paper hasn't been published yet.
+ * Fetch the questions for a given subject + year. Prefers the Supabase-loaded
+ * bank, falls back to the bundled sets, then to a generated placeholder set.
  */
 export function getPaperQuestions(
   subjectId: number,
@@ -428,6 +474,9 @@ export function getPaperQuestions(
   subjectName: string,
   fallbackCount = 20,
 ): Question[] {
+  const remote = REMOTE_QUESTIONS[subjectId]?.[year];
+  if (remote && remote.length > 0) return remote;
+
   const real = PAPER_QUESTIONS[subjectId]?.[year];
   if (real && real.length > 0) return real;
   return Array.from({ length: fallbackCount }, (_, i) => ({
@@ -445,5 +494,9 @@ export function getPaperQuestions(
 }
 
 export function hasRealPaper(subjectId: number, year: string): boolean {
-  return !!PAPER_QUESTIONS[subjectId]?.[year];
+  return (
+    (REMOTE_QUESTIONS[subjectId]?.[year]?.length ?? 0) > 0 ||
+    !!PAPER_QUESTIONS[subjectId]?.[year]
+  );
 }
+

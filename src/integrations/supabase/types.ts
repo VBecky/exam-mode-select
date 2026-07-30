@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      exam_questions: {
+        Row: {
+          answer: number
+          created_at: string
+          explanation: string
+          id: string
+          options: Json
+          position: number
+          subject_id: number
+          subject_name: string
+          text: string
+          updated_at: string
+          year: string
+        }
+        Insert: {
+          answer?: number
+          created_at?: string
+          explanation?: string
+          id?: string
+          options?: Json
+          position: number
+          subject_id: number
+          subject_name: string
+          text: string
+          updated_at?: string
+          year: string
+        }
+        Update: {
+          answer?: number
+          created_at?: string
+          explanation?: string
+          id?: string
+          options?: Json
+          position?: number
+          subject_id?: number
+          subject_name?: string
+          text?: string
+          updated_at?: string
+          year?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
