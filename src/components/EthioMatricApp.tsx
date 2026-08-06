@@ -11,6 +11,7 @@ import {
   Pencil, Save,
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
+import MathText from "@/components/MathText";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -264,7 +265,7 @@ function QuestionCard({q,index,mode,selectedAnswer,isFlagged,onAnswer,onToggleFl
         <span className="flex-shrink-0 w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center text-white mt-0.5" style={{background:color}}>
           {index+1}
         </span>
-        <p className="text-sm font-medium text-foreground leading-snug flex-1">{q.text}</p>
+        <p className="text-sm font-medium text-foreground leading-snug flex-1"><MathText>{q.text}</MathText></p>
         <button onClick={onToggleFlag} className="flex-shrink-0 ml-1 mt-0.5 p-0.5">
           <Bookmark size={15} className={isFlagged?"fill-orange-400 text-orange-400":"text-muted-foreground"}/>
         </button>
@@ -282,7 +283,7 @@ function QuestionCard({q,index,mode,selectedAnswer,isFlagged,onAnswer,onToggleFl
               className="w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium border transition-all flex items-center gap-2"
               style={{background:bg,borderColor:border,color:tc}}>
               <span className="text-xs font-bold opacity-40 w-4 flex-shrink-0">{["A","B","C","D"][oi]}.</span>
-              <span className="flex-1">{opt}</span>
+              <span className="flex-1"><MathText>{opt}</MathText></span>
               {mode==="practice"&&answered&&isAnswer   &&<CheckCircle size={13} className="text-green-600 flex-shrink-0"/>}
               {mode==="practice"&&answered&&isSelected&&!isAnswer&&<XCircle size={13} className="text-red-500 flex-shrink-0"/>}
             </button>
@@ -299,7 +300,7 @@ function QuestionCard({q,index,mode,selectedAnswer,isFlagged,onAnswer,onToggleFl
               <p className="text-xs font-bold mb-1" style={{color:selectedAnswer===q.answer?"#059669":"#dc2626"}}>
                 {selectedAnswer===q.answer?"✓ Correct!":"✗ Incorrect"}
               </p>
-              <p className="text-xs text-foreground leading-relaxed">{q.explanation}</p>
+              <p className="text-xs text-foreground leading-relaxed"><MathText>{q.explanation}</MathText></p>
             </div>
           </motion.div>
         )}
@@ -355,7 +356,7 @@ function ExamResults({questions,answers,subject,title,onRetry,onBack}:{
                   ${wasAttempted&&isCorrect?"bg-green-100 text-green-700":wasAttempted?"bg-red-100 text-red-600":"bg-muted text-muted-foreground"}`}>
                   {qi+1}
                 </span>
-                <p className="text-sm font-medium text-foreground leading-snug">{q.text}</p>
+                <p className="text-sm font-medium text-foreground leading-snug"><MathText>{q.text}</MathText></p>
               </div>
               <div className="px-4 py-3 space-y-1.5">
                 {q.options.map((opt,oi)=>{
@@ -367,7 +368,7 @@ function ExamResults({questions,answers,subject,title,onRetry,onBack}:{
                     <div key={oi} className="px-3 py-2 rounded-xl text-xs font-medium border flex items-center gap-2"
                       style={{background:bg,borderColor:border,color:tc}}>
                       <span className="font-bold opacity-40 w-4 flex-shrink-0">{["A","B","C","D"][oi]}.</span>
-                      <span className="flex-1">{opt}</span>
+                      <span className="flex-1"><MathText>{opt}</MathText></span>
                       {isAnswer&&<CheckCircle size={11} className="text-green-600 flex-shrink-0"/>}
                       {isChosen&&!isAnswer&&<XCircle size={11} className="text-red-500 flex-shrink-0"/>}
                     </div>
@@ -380,7 +381,7 @@ function ExamResults({questions,answers,subject,title,onRetry,onBack}:{
                 <p className="text-xs font-bold mb-0.5" style={{color:isCorrect?"#059669":wasAttempted?"#dc2626":"var(--muted-foreground)"}}>
                   {!wasAttempted?"Not attempted":isCorrect?"✓ Correct":"✗ Incorrect"}
                 </p>
-                <p className="text-xs text-foreground leading-relaxed">{q.explanation}</p>
+                <p className="text-xs text-foreground leading-relaxed"><MathText>{q.explanation}</MathText></p>
               </div>
             </div>
           );
