@@ -438,7 +438,8 @@ export async function loadRemoteQuestions(): Promise<void> {
         .select("subject_id, year, position, text, options, answer, explanation")
         .order("subject_id")
         .order("year")
-        .order("position");
+        .order("position")
+        .limit(20000);
 
       if (error) throw error;
 
