@@ -1323,6 +1323,7 @@ export default function App() {
   useEffect(()=>{try{localStorage.setItem("userGrade",userGrade);}catch{}},        [userGrade]);
 
   const inQuiz=screen.name==="quiz";
+  const hideNav=inQuiz||screen.name==="subjectDetails";
   const activeTab=["subjectDetails","quiz"].includes(screen.name)?"exams":
     ["notifications","helpSupport","settings"].includes(screen.name)?"profile":screen.name;
 
@@ -1352,7 +1353,7 @@ export default function App() {
         style={{height:"100dvh",background:"var(--background)",fontFamily:"'Inter',sans-serif",overflow:"hidden"}}>
 
         {/* Scroll container */}
-        <div ref={scrollRef} className="absolute inset-0 overflow-y-auto scrollbar-hide" style={{paddingBottom:inQuiz?0:76}}>
+        <div ref={scrollRef} className="absolute inset-0 overflow-y-auto scrollbar-hide" style={{paddingBottom:hideNav?0:76}}>
           {/* Status bar removed — native mobile status bar handles time/icons */}
           <div className="pt-4"/>
 
@@ -1421,7 +1422,7 @@ export default function App() {
         </div>
 
         {/* Bottom nav — always visible except in quiz */}
-        {!inQuiz&&(
+        {!hideNav&&(
           <div className="absolute bottom-0 left-0 right-0 bg-card border-t border-border flex items-center px-2 pt-2 pb-5 z-30"
             style={{boxShadow:"0 -4px 20px rgba(108,63,207,0.08)"}}>
             {navItems.map(({id,label,icon:Icon})=>{
