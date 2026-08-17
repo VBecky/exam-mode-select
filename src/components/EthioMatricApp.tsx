@@ -519,7 +519,7 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
   return (
     <>
       <div className="flex flex-col gap-4 pb-28">
-        <div className="flex items-center gap-3 pt-2">
+        <div className="sticky top-0 z-20 -mx-5 px-5 pt-2 pb-3 -mb-3 flex items-center gap-3" style={{background:"var(--background)"}}>
           <button className="w-9 h-9 rounded-2xl bg-card border border-border flex items-center justify-center shadow-sm flex-shrink-0" onClick={onBack}>
             <ArrowLeft size={18} className="text-foreground"/>
           </button>
