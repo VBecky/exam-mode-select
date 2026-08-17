@@ -1038,12 +1038,15 @@ function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
   userName:string;
 }) {
   const lpSubject=lastPaper?subjects.find(s=>s.id===lastPaper.subjectId):null;
-  const displaySubject=lpSubject??subjects[0];
+  const defaultSubject=subjects.find(s=>s.name==="Mathematics")??subjects[0];
+  const displaySubject=lpSubject??defaultSubject;
   const displayYear=lastPaper?.year??"2017 E.C.";
-  const displayQCount=lastPaper?.questionsCount??65;
+  const defaultCount=getPaperQuestions(defaultSubject.id,"2017 E.C.",defaultSubject.name,20).length;
+  const displayQCount=lastPaper?.questionsCount??defaultCount;
   const displayDuration=lastPaper?.duration??"3 hrs";
   const displayMode=lastPaper?.mode??"practice";
   const gradientFrom=displaySubject.color;
+
   return (
     <div className="flex flex-col gap-5 pb-6">
       <div className="flex items-start justify-between pt-2">
