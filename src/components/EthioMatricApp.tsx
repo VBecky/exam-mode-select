@@ -259,6 +259,8 @@ function QuestionCard({q,index,mode,selectedAnswer,isFlagged,onAnswer,onToggleFl
   onAnswer:(oi:number)=>void;onToggleFlag:()=>void;color:string;
 }) {
   const answered = selectedAnswer!==null;
+  const [showExp,setShowExp] = useState(false);
+  useEffect(()=>{ if(!answered) setShowExp(false); },[answered]);
   return (
     <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
       <div className="px-4 pt-4 pb-0 flex items-start gap-2.5">
