@@ -296,13 +296,24 @@ function QuestionCard({q,index,mode,selectedAnswer,isFlagged,onAnswer,onToggleFl
         {mode==="practice"&&answered&&(
           <motion.div initial={{height:0,opacity:0}} animate={{height:"auto",opacity:1}}
             exit={{height:0,opacity:0}} transition={{duration:0.25,ease:"easeOut"}} className="overflow-hidden">
-            <div className="mx-4 mb-4 p-3.5 rounded-2xl"
+            <div className="mx-4 mb-4 rounded-2xl overflow-hidden"
               style={{background:selectedAnswer===q.answer?"#d1fae520":"#fee2e220",
                       borderLeft:`3px solid ${selectedAnswer===q.answer?"#10b981":"#ef4444"}`}}>
-              <p className="text-xs font-bold mb-1" style={{color:selectedAnswer===q.answer?"#059669":"#dc2626"}}>
-                {selectedAnswer===q.answer?"✓ Correct!":"✗ Incorrect"}
-              </p>
-              <p className="text-xs text-foreground leading-relaxed"><MathText>{q.explanation}</MathText></p>
+              <button onClick={()=>setShowExp(v=>!v)} className="w-full flex items-center justify-between gap-2 p-3.5 text-left">
+                <span className="text-xs font-bold" style={{color:selectedAnswer===q.answer?"#059669":"#dc2626"}}>
+                  {selectedAnswer===q.answer?"✓ Correct!":"✗ Incorrect"} · Explanation
+                </span>
+                <ChevronDown size={14} className="flex-shrink-0 transition-transform"
+                  style={{color:selectedAnswer===q.answer?"#059669":"#dc2626",transform:showExp?"rotate(180deg)":"none"}}/>
+              </button>
+              <AnimatePresence initial={false}>
+                {showExp&&(
+                  <motion.div initial={{height:0,opacity:0}} animate={{height:"auto",opacity:1}}
+                    exit={{height:0,opacity:0}} transition={{duration:0.22,ease:"easeOut"}} className="overflow-hidden">
+                    <p className="text-xs text-foreground leading-relaxed px-3.5 pb-3.5"><MathText>{q.explanation}</MathText></p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}
@@ -310,6 +321,7 @@ function QuestionCard({q,index,mode,selectedAnswer,isFlagged,onAnswer,onToggleFl
     </div>
   );
 }
+
 
 // ─── Exam Results ─────────────────────────────────────────────────────────────
 
