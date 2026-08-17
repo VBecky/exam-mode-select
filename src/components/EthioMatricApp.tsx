@@ -1064,25 +1064,28 @@ function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
         <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-10 bg-white"/>
         <div className="absolute -right-2 bottom-4 w-20 h-20 rounded-full opacity-10 bg-white"/>
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-white/20">
-          {lastPaper?`Resume · ${displayMode==="exam"?"Exam":"Practice"}`:"Get started"}
+          {lastPaper?`Resume · ${displayMode==="exam"?"Exam":"Practice"}`:"Start here · Practice"}
         </span>
         <h2 className="mt-2 text-xl font-bold">{displaySubject.name} {displayYear}</h2>
         <p className="text-sm opacity-80 mt-0.5">{displayQCount} questions · {displayDuration}</p>
         <div className="mt-4 mb-3">
           <div className="flex justify-between text-xs mb-1.5 opacity-80">
-            <span>{lastPaper?"Last opened":"Start your first paper"}</span>
+            <span>{lastPaper?"Last opened":"Recommended first paper"}</span>
             {lastPaper&&<span>{new Date(lastPaper.ts).toLocaleDateString()}</span>}
           </div>
           <div className="w-full h-1.5 rounded-full bg-white/30"><div className="h-full rounded-full bg-white" style={{width:lastPaper?"100%":"10%"}}/></div>
         </div>
         <button onClick={()=>{
-          if(lastPaper) onContinue(lastPaper);
-          else onNavigate("exams");
+          onContinue(lastPaper??{
+            subjectId:defaultSubject.id, year:"2017 E.C.", duration:"3 hrs",
+            questionsCount:defaultCount, mode:"practice", ts:Date.now(),
+          });
         }}
           className="mt-1 bg-white font-semibold text-sm px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95"
           style={{color:displaySubject.color}}>
-          <Play size={14} fill="currentColor"/> {lastPaper?"Continue":"Browse exams"}
+          <Play size={14} fill="currentColor"/> {lastPaper?"Continue":"Start Mathematics"}
         </button>
+
       </motion.div>
       <div>
         <div className="flex items-center justify-between mb-3">
