@@ -1083,7 +1083,7 @@ function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
         }}
           className="mt-1 bg-white font-semibold text-sm px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95"
           style={{color:displaySubject.color}}>
-          <Play size={14} fill="currentColor"/> {lastPaper?"Continue":"Start Mathematics"}
+          <Play size={14} fill="currentColor"/> {lastPaper?"Continue":"Browser Exams"}
         </button>
 
       </motion.div>
