@@ -1066,7 +1066,7 @@ function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-white/20">
           {lastPaper?`Resume · ${displayMode==="exam"?"Exam":"Practice"}`:"Start here · Practice"}
         </span>
-        <h2 className="mt-2 text-xl font-bold">{lastPaper?`${displaySubject.name} ${displayYear}`:"Welcome"}</h2>
+        <h2 className="mt-2 text-xl font-bold">{lastPaper?`${displaySubject.name} ${displayYear}`:"Start Your First Exam"}</h2>
         <p className="text-sm opacity-80 mt-0.5">{lastPaper?`${displayQCount} questions · ${displayDuration}`:"questions · hrs"}</p>
         <div className="mt-4 mb-3">
           <div className="flex justify-between text-xs mb-1.5 opacity-80">
@@ -1083,7 +1083,7 @@ function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
         }}
           className="mt-1 bg-white font-semibold text-sm px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95"
           style={{color:displaySubject.color}}>
-          <Play size={14} fill="currentColor"/> {lastPaper?"Continue":"Browser Exams"}
+          <Play size={14} fill="currentColor"/> {lastPaper?"Continue":"Browse Exam"}
         </button>
 
       </motion.div>
