@@ -1076,10 +1076,7 @@ function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
           <div className="w-full h-1.5 rounded-full bg-white/30"><div className="h-full rounded-full bg-white" style={{width:lastPaper?"100%":"10%"}}/></div>
         </div>
         <button onClick={()=>{
-          onContinue(lastPaper??{
-            subjectId:defaultSubject.id, year:"2017 E.C.", duration:"3 hrs",
-            questionsCount:defaultCount, mode:"practice", ts:Date.now(),
-          });
+          lastPaper?onContinue(lastPaper):onNavigate("exams");
         }}
           className="mt-1 bg-white font-semibold text-sm px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95"
           style={{color:displaySubject.color}}>
