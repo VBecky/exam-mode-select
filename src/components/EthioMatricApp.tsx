@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
   Home, BookOpen, BarChart2, User, Bell, Search, ChevronRight, ChevronDown,
   Play, Clock, CheckCircle, Star, Flame, Target, Trophy, Moon, HelpCircle,
@@ -1230,54 +1230,142 @@ function StreakStat() {
   );
 }
 
+function ScoreRing({value,size=120,stroke=10}:{value:number;size?:number;stroke?:number}) {
+  const r=(size-stroke)/2;
+  const c=2*Math.PI*r;
+  return (
+    <div className="relative" style={{width:size,height:size}}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size/2} cy={size/2} r={r} stroke="rgba(255,255,255,0.18)" strokeWidth={stroke} fill="none"/>
+        <motion.circle cx={size/2} cy={size/2} r={r} stroke="#fff" strokeWidth={stroke} fill="none"
+          strokeLinecap="round" strokeDasharray={c}
+          initial={{strokeDashoffset:c}} animate={{strokeDashoffset:c*(1-value/100)}}
+          transition={{duration:1.2,ease:"easeOut",delay:0.2}}/>
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-3xl font-extrabold leading-none">{value}%</span>
+        <span className="text-[10px] font-medium opacity-70 mt-1">Overall</span>
+      </div>
+    </div>
+  );
+}
+
+function WeeklyActivity() {
+  const [week,setWeek]=useState<StreakDay[]>([]);
+  useEffect(()=>{setWeek(getWeek());},[]);
+  const data=week.map(d=>({day:d.label,done:d.active?1:0,isToday:d.isToday,isFuture:d.isFuture}));
+  return (
+    <div className="bg-card rounded-3xl p-5 shadow-sm border border-border">
+      <div className="flex items-center justify-between mb-4">
+        <p className="font-bold text-sm text-foreground">Weekly Activity</p>
+        <span className="text-[11px] font-semibold text-muted-foreground bg-muted px-2.5 py-1 rounded-full">This week</span>
+      </div>
+      <ResponsiveContainer width="100%" height={110}>
+        <BarChart data={data} margin={{top:0,right:0,left:0,bottom:0}} barCategoryGap="28%">
+          <XAxis dataKey="day" tick={{fontSize:11,fill:"var(--muted-foreground)"}} axisLine={false} tickLine={false}/>
+          <YAxis hide domain={[0,1]}/>
+          <Tooltip cursor={{fill:"transparent"}} formatter={(v:any)=>[v?"Studied":"No activity",""]}
+            contentStyle={{borderRadius:12,border:"1px solid var(--border)",background:"var(--card)",color:"var(--foreground)",fontSize:12}}/>
+          <Bar dataKey="done" radius={[8,8,8,8]} minPointSize={8}>
+            {data.map((d,i)=>(
+              <Cell key={i} fill={d.done?"var(--primary)":"var(--muted)"} opacity={d.isFuture&&!d.done?0.5:1}/>
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 function ProgressScreen() {
   return (
     <div className="flex flex-col gap-5 pb-6">
       <div className="pt-2"><h1 className="text-2xl font-bold text-foreground">Progress</h1><p className="text-sm text-muted-foreground">Track your improvement</p></div>
-      <StreakCard/>
-      <div className="rounded-3xl p-5 text-white" style={{background:"linear-gradient(135deg,#6c3fcf,#9061f9)"}}>
-        <p className="text-sm opacity-80 font-medium">Overall Score</p>
-        <div className="flex items-end gap-2 mt-1"><span className="text-5xl font-extrabold">88</span><span className="text-xl mb-1 opacity-80">%</span><span className="ml-2 mb-1 text-sm bg-white/20 px-2 py-0.5 rounded-full font-medium flex items-center gap-1"><TrendingUp size={12}/> +6%</span></div>
-        <div className="grid grid-cols-3 gap-3 mt-4">{[{label:"Completed",value:"23"},{label:"Avg Score",value:"76%"},{label:"Best",value:"95%"}].map(s=>(
-          <div key={s.label} className="bg-white/10 rounded-2xl p-2.5 text-center"><p className="text-lg font-bold">{s.value}</p><p className="text-xs opacity-70 mt-0.5">{s.label}</p></div>
-        ))}</div>
-      </div>
-      <div className="bg-card rounded-2xl p-4 shadow-sm border border-border">
-        <p className="font-bold text-sm text-foreground mb-4">Score History</p>
-        <ResponsiveContainer width="100%" height={140}>
-          <LineChart data={scoreHistory} margin={{top:5,right:5,left:-20,bottom:0}}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)"/>
-            <XAxis dataKey="month" tick={{fontSize:11,fill:"var(--muted-foreground)"}} axisLine={false} tickLine={false}/>
-            <YAxis tick={{fontSize:11,fill:"var(--muted-foreground)"}} axisLine={false} tickLine={false} domain={[50,100]}/>
-            <Tooltip contentStyle={{borderRadius:12,border:"1px solid var(--border)",background:"var(--card)",color:"var(--foreground)",fontSize:12}}/>
-            <Line type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={2.5} dot={{fill:"var(--primary)",r:4,strokeWidth:0}} activeDot={{r:6}}/>
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-      <div>
-        <p className="font-bold text-sm text-foreground mb-3">Subject Performance</p>
-        <div className="space-y-3">
-          {subjects.slice(0,5).map(s=>(
-            <div key={s.id} className="bg-card rounded-2xl p-4 shadow-sm border border-border">
-              <div className="flex items-center gap-3 mb-2.5"><span className="text-xl">{s.icon}</span><div className="flex-1"><div className="flex justify-between"><p className="text-sm font-semibold text-foreground">{s.name}</p><span className="text-sm font-bold" style={{color:s.color}}>{s.completion}%</span></div></div></div>
-              <ProgressBar value={s.completion} color={s.color} height={5}/>
+
+      {/* Hero: radial score ring + key stats */}
+      <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} className="rounded-3xl p-5 text-white overflow-hidden relative"
+        style={{background:"linear-gradient(135deg,#6c3fcf,#9061f9)"}}>
+        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10"/>
+        <div className="absolute -bottom-14 -left-8 w-36 h-36 rounded-full bg-white/5"/>
+        <div className="relative flex items-center gap-5">
+          <ScoreRing value={88}/>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold opacity-90">Overall Score</p>
+            <p className="text-xs opacity-70 mt-0.5">Keep it up — you're improving</p>
+            <span className="inline-flex items-center gap-1 mt-2.5 text-xs bg-white/20 px-2.5 py-1 rounded-full font-semibold"><TrendingUp size={12}/> +6% this month</span>
+          </div>
+        </div>
+        <div className="relative grid grid-cols-3 gap-2.5 mt-5">
+          {[{label:"Completed",value:"23",icon:ListChecks},{label:"Avg Score",value:"76%",icon:Target},{label:"Best",value:"95%",icon:Trophy}].map(s=>(
+            <div key={s.label} className="bg-white/12 backdrop-blur rounded-2xl p-3">
+              <s.icon size={14} className="opacity-80"/>
+              <p className="text-lg font-extrabold mt-1.5 leading-none">{s.value}</p>
+              <p className="text-[10px] opacity-70 mt-1 font-medium">{s.label}</p>
             </div>
           ))}
         </div>
+      </motion.div>
+
+      <StreakCard/>
+      <WeeklyActivity/>
+
+      {/* Score trend: smooth area chart */}
+      <div className="bg-card rounded-3xl p-5 shadow-sm border border-border">
+        <div className="flex items-center justify-between mb-4">
+          <p className="font-bold text-sm text-foreground">Score Trend</p>
+          <span className="text-[11px] font-semibold text-primary bg-secondary px-2.5 py-1 rounded-full flex items-center gap-1"><TrendingUp size={11}/> Improving</span>
+        </div>
+        <ResponsiveContainer width="100%" height={150}>
+          <AreaChart data={scoreHistory} margin={{top:5,right:5,left:-22,bottom:0}}>
+            <defs>
+              <linearGradient id="scoreFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35}/>
+                <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.02}/>
+              </linearGradient>
+            </defs>
+            <XAxis dataKey="month" tick={{fontSize:11,fill:"var(--muted-foreground)"}} axisLine={false} tickLine={false}/>
+            <YAxis tick={{fontSize:11,fill:"var(--muted-foreground)"}} axisLine={false} tickLine={false} domain={[50,100]}/>
+            <Tooltip contentStyle={{borderRadius:12,border:"1px solid var(--border)",background:"var(--card)",color:"var(--foreground)",fontSize:12}}/>
+            <Area type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={2.5} fill="url(#scoreFill)"
+              dot={{fill:"var(--primary)",r:3.5,strokeWidth:0}} activeDot={{r:6,stroke:"var(--card)",strokeWidth:2}}/>
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <StreakStat/>
-        <div className="bg-card rounded-2xl p-4 shadow-sm border border-border"><div className="flex items-center gap-2 mb-2"><Trophy size={16} className="text-yellow-500"/><span className="text-xs font-semibold text-muted-foreground uppercase">Badges</span></div><p className="text-3xl font-extrabold text-foreground">3</p><p className="text-xs text-muted-foreground">earned</p></div>
+
+      {/* Subject performance */}
+      <div>
+        <p className="font-bold text-sm text-foreground mb-3">Subject Performance</p>
+        <div className="bg-card rounded-3xl shadow-sm border border-border divide-y divide-border overflow-hidden">
+          {subjects.slice(0,5).map((s,i)=>(
+            <motion.div key={s.id} initial={{opacity:0,x:-10}} animate={{opacity:1,x:0}} transition={{delay:i*0.06}} className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0" style={{background:`${s.color}18`}}>{s.icon}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <p className="text-sm font-semibold text-foreground">{s.name}</p>
+                    <span className="text-sm font-bold" style={{color:s.color}}>{s.completion}%</span>
+                  </div>
+                  <ProgressBar value={s.completion} color={s.color} height={6}/>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
+
+      {/* Achievements */}
       <div>
         <p className="font-bold text-sm text-foreground mb-3">Achievements</p>
         <div className="grid grid-cols-3 gap-3">
           {achievementsList.map((a,i)=>(
-            <div key={i} className="bg-card rounded-2xl p-3 shadow-sm border border-border flex flex-col items-center gap-2 text-center" style={{opacity:a.earned?1:0.4}}>
-              <span className="text-2xl">{a.icon}</span>
-              <p className="text-xs font-medium text-foreground leading-tight">{a.label}</p>
-              {a.earned&&<div className="w-1.5 h-1.5 rounded-full bg-primary"/>}
-            </div>
+            <motion.div key={i} initial={{opacity:0,scale:0.9}} animate={{opacity:1,scale:1}} transition={{delay:i*0.07}}
+              className="bg-card rounded-2xl p-3.5 shadow-sm border border-border flex flex-col items-center gap-2 text-center" style={{opacity:a.earned?1:0.45}}>
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl" style={{background:a.earned?"var(--secondary)":"var(--muted)"}}>{a.icon}</div>
+              <p className="text-[11px] font-semibold text-foreground leading-tight">{a.label}</p>
+              {a.earned
+                ? <span className="text-[9px] font-bold text-primary bg-secondary px-2 py-0.5 rounded-full uppercase tracking-wide">Earned</span>
+                : <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide">Locked</span>}
+            </motion.div>
           ))}
         </div>
       </div>
