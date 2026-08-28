@@ -658,6 +658,7 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
     const seconds=mode==="exam"?parseDuration(sheetPaper.duration):undefined;
     const title=`${subject.name} ${sheetPaper.year}`;
     const questions=getPaperQuestions(subject.id,sheetPaper.year,subject.name,sheetPaper.questions);
+    recordStudyDay();
     try{
       localStorage.setItem("lastPaper",JSON.stringify({
         subjectId:subject.id,year:sheetPaper.year,duration:sheetPaper.duration,
