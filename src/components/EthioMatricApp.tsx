@@ -1218,6 +1218,18 @@ function StreakCard() {
   );
 }
 
+function StreakStat() {
+  const [count,setCount]=useState(0);
+  useEffect(()=>{setCount(getStreakCount());},[]);
+  return (
+    <div className="bg-card rounded-2xl p-4 shadow-sm border border-border">
+      <div className="flex items-center gap-2 mb-2"><Flame size={16} className="text-orange-500"/><span className="text-xs font-semibold text-muted-foreground uppercase">Streak</span></div>
+      <p className="text-3xl font-extrabold text-foreground">{count}</p>
+      <p className="text-xs text-muted-foreground">day{count===1?"":"s"} in a row</p>
+    </div>
+  );
+}
+
 function ProgressScreen() {
   return (
     <div className="flex flex-col gap-5 pb-6">
