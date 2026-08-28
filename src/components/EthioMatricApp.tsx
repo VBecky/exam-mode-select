@@ -11,6 +11,7 @@ import {
   Pencil, Save,
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
+import { recordStudyDay, getStreakCount, getWeek, type StreakDay } from "@/lib/streak";
 import MathText from "@/components/MathText";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
