@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
   Home, BookOpen, BarChart2, User, Bell, Search, ChevronRight, ChevronDown,
   Play, Clock, CheckCircle, Star, Flame, Target, Trophy, Moon, HelpCircle,
