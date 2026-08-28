@@ -1177,10 +1177,52 @@ function ExamsScreen({onSubjectSelect,stream}:{onSubjectSelect:(id:number)=>void
 
 // ─── Progress Screen ──────────────────────────────────────────────────────────
 
+function StreakCard() {
+  const [week,setWeek]=useState<StreakDay[]>([]);
+  const [count,setCount]=useState(0);
+  useEffect(()=>{setWeek(getWeek());setCount(getStreakCount());},[]);
+  const doneThisWeek=week.filter(d=>d.active).length;
+  return (
+    <div className="bg-card rounded-3xl p-5 shadow-sm border border-border">
+      <div className="flex items-center gap-3">
+        <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-orange-500/12">
+          <Flame size={22} className="text-orange-500"/>
+        </div>
+        <div className="flex-1">
+          <p className="text-xl font-extrabold text-foreground leading-none">{count} <span className="text-sm font-semibold text-muted-foreground">day{count===1?"":"s"} streak</span></p>
+          <p className="text-xs text-muted-foreground mt-1">{doneThisWeek}/7 days studied this week</p>
+        </div>
+      </div>
+      <div className="flex gap-1.5 mt-4">
+        {week.map((d,i)=>(
+          <div key={d.key} className="flex-1 flex flex-col items-center gap-1.5">
+            <motion.div
+              initial={{scale:0.6,opacity:0}} animate={{scale:1,opacity:1}}
+              transition={{delay:i*0.045,type:"spring",stiffness:340,damping:20}}
+              className="w-full aspect-square rounded-2xl flex items-center justify-center border"
+              style={{
+                background:d.active?"var(--primary)":"var(--muted)",
+                borderColor:d.isToday?"var(--primary)":"transparent",
+                borderWidth:d.isToday?2:1,
+                opacity:d.isFuture&&!d.active?0.45:1,
+              }}>
+              {d.active
+                ? <CheckCircle size={16} className="text-primary-foreground"/>
+                : <span className="text-[11px] font-semibold text-muted-foreground">{d.isToday?"•":""}</span>}
+            </motion.div>
+            <span className={`text-[11px] ${d.isToday?"font-bold text-primary":"font-medium text-muted-foreground"}`}>{d.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ProgressScreen() {
   return (
     <div className="flex flex-col gap-5 pb-6">
       <div className="pt-2"><h1 className="text-2xl font-bold text-foreground">Progress</h1><p className="text-sm text-muted-foreground">Track your improvement</p></div>
+      <StreakCard/>
       <div className="rounded-3xl p-5 text-white" style={{background:"linear-gradient(135deg,#6c3fcf,#9061f9)"}}>
         <p className="text-sm opacity-80 font-medium">Overall Score</p>
         <div className="flex items-end gap-2 mt-1"><span className="text-5xl font-extrabold">88</span><span className="text-xl mb-1 opacity-80">%</span><span className="ml-2 mb-1 text-sm bg-white/20 px-2 py-0.5 rounded-full font-medium flex items-center gap-1"><TrendingUp size={12}/> +6%</span></div>
