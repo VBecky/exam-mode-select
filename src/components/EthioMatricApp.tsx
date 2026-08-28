@@ -1254,7 +1254,7 @@ function ProgressScreen() {
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-card rounded-2xl p-4 shadow-sm border border-border"><div className="flex items-center gap-2 mb-2"><Flame size={16} className="text-orange-500"/><span className="text-xs font-semibold text-muted-foreground uppercase">Streak</span></div><p className="text-3xl font-extrabold text-foreground">7</p><p className="text-xs text-muted-foreground">days in a row</p></div>
+        <StreakStat/>
         <div className="bg-card rounded-2xl p-4 shadow-sm border border-border"><div className="flex items-center gap-2 mb-2"><Trophy size={16} className="text-yellow-500"/><span className="text-xs font-semibold text-muted-foreground uppercase">Badges</span></div><p className="text-3xl font-extrabold text-foreground">3</p><p className="text-xs text-muted-foreground">earned</p></div>
       </div>
       <div>
