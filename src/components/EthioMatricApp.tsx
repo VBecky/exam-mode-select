@@ -53,7 +53,7 @@ const subjects = [
 const NATURAL_IDS = [2, 1, 9, 3, 4, 5]; // English, Math, SAT, Physics, Chemistry, Biology
 const SOCIAL_IDS  = [2, 1, 9, 6, 7, 8]; // English, Math, SAT, History, Geography, Economics
 
-const CHIP_YEARS = ["2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010"];
+const CHIP_YEARS = ["2017", "2016", "2015", "2014"];
 
 // ─── Full-Paper Questions ─────────────────────────────────────────────────────
 
@@ -738,7 +738,7 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
         </div>
         {/* Year chips — filter, not navigation */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {["All Years",...CHIP_YEARS].map(y=>{
+          {["All Years",...papers.map(p=>p.year.split(" ")[0])].map(y=>{
             const active=selectedYear===y;
             return (
               <button key={y}
