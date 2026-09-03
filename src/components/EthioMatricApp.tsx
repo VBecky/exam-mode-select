@@ -39,21 +39,21 @@ type Screen =
 // ─── Subjects ─────────────────────────────────────────────────────────────────
 
 const subjects = [
-  { id: 1,  name: "Mathematics", icon: "📐", papers: 12, completion: 72, color: "#6c3fcf", bg: "#ede9f9" },
-  { id: 2,  name: "English",     icon: "📖", papers: 10, completion: 55, color: "#0ea5e9", bg: "#e0f2fe" },
-  { id: 3,  name: "Physics",     icon: "⚡", papers:  9, completion: 40, color: "#f59e0b", bg: "#fef3c7" },
-  { id: 4,  name: "Chemistry",   icon: "🧪", papers: 11, completion: 30, color: "#10b981", bg: "#d1fae5" },
-  { id: 5,  name: "Biology",     icon: "🧬", papers:  8, completion: 60, color: "#ec4899", bg: "#fce7f3" },
-  { id: 6,  name: "History",     icon: "📜", papers:  8, completion: 45, color: "#f97316", bg: "#ffedd5" },
-  { id: 7,  name: "Geography",   icon: "🌍", papers:  6, completion: 20, color: "#14b8a6", bg: "#ccfbf1" },
-  { id: 8,  name: "Economics",   icon: "📊", papers:  7, completion: 25, color: "#84cc16", bg: "#f7fee7" },
-  { id: 9,  name: "SAT",         icon: "🎯", papers:  6, completion: 35, color: "#ef4444", bg: "#fee2e2" },
+  { id: 1,  name: "Mathematics", icon: "📐", papers:  4, completion: 72, color: "#6c3fcf", bg: "#ede9f9" },
+  { id: 2,  name: "English",     icon: "📖", papers:  4, completion: 55, color: "#0ea5e9", bg: "#e0f2fe" },
+  { id: 3,  name: "Physics",     icon: "⚡", papers:  4, completion: 40, color: "#f59e0b", bg: "#fef3c7" },
+  { id: 4,  name: "Chemistry",   icon: "🧪", papers:  4, completion: 30, color: "#10b981", bg: "#d1fae5" },
+  { id: 5,  name: "Biology",     icon: "🧬", papers:  4, completion: 60, color: "#ec4899", bg: "#fce7f3" },
+  { id: 6,  name: "History",     icon: "📜", papers:  4, completion: 45, color: "#f97316", bg: "#ffedd5" },
+  { id: 7,  name: "Geography",   icon: "🌍", papers:  4, completion: 20, color: "#14b8a6", bg: "#ccfbf1" },
+  { id: 8,  name: "Economics",   icon: "📊", papers:  2, completion: 25, color: "#84cc16", bg: "#f7fee7" },
+  { id: 9,  name: "SAT",         icon: "🎯", papers:  4, completion: 35, color: "#ef4444", bg: "#fee2e2" },
 ];
 
 const NATURAL_IDS = [2, 1, 9, 3, 4, 5]; // English, Math, SAT, Physics, Chemistry, Biology
 const SOCIAL_IDS  = [2, 1, 9, 6, 7, 8]; // English, Math, SAT, History, Geography, Economics
 
-const CHIP_YEARS = ["2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010"];
+
 
 // ─── Full-Paper Questions ─────────────────────────────────────────────────────
 
@@ -184,26 +184,30 @@ function buildYearData(subjectName: string, year: string): { year: string; grade
   };
 }
 
-const allYearsPapers: Record<number, {year:string;questions:number;duration:string;score:number|null}[]> = {
-  1:[
-    {year:"2017 E.C.",questions:65,duration:"3 hrs",  score:88},
-    {year:"2016 E.C.",questions:65,duration:"3 hrs",  score:74},
-    {year:"2015 E.C.",questions:60,duration:"2.5 hrs",score:null},
-    {year:"2014 E.C.",questions:60,duration:"2.5 hrs",score:91},
-    {year:"2013 E.C.",questions:55,duration:"2 hrs",  score:null},
-    {year:"2012 E.C.",questions:55,duration:"2 hrs",  score:78},
-  ],
-  2:[
-    {year:"2017 E.C.",questions:70,duration:"3 hrs",  score:65},
-    {year:"2016 E.C.",questions:70,duration:"3 hrs",  score:null},
-    {year:"2015 E.C.",questions:65,duration:"2.5 hrs",score:78},
-  ],
-};
-const defaultPapers = (id:number) => allYearsPapers[id] ?? [
-  {year:"2017 E.C.",questions:60,duration:"2.5 hrs",score:null},
-  {year:"2016 E.C.",questions:55,duration:"2 hrs",  score:null},
-  {year:"2015 E.C.",questions:55,duration:"2 hrs",  score:72},
+// Per-subject past papers. Most subjects have 4 years (2014–2017 E.C.);
+// Economics has 2 years (2016–2017 E.C).
+type Paper = {year:string;questions:number;duration:string;score:number|null};
+const fourYears = (q:number,dur:string): Paper[] => [
+  {year:"2017 E.C.",questions:q,duration:dur,score:null},
+  {year:"2016 E.C.",questions:q,duration:dur,score:null},
+  {year:"2015 E.C.",questions:q,duration:dur,score:null},
+  {year:"2014 E.C.",questions:q,duration:dur,score:null},
 ];
+const allYearsPapers: Record<number, Paper[]> = {
+  1: fourYears(65,"3 hrs"),    // Mathematics
+  2: fourYears(70,"3 hrs"),    // English
+  3: fourYears(60,"3 hrs"),    // Physics
+  4: fourYears(80,"3 hrs"),    // Chemistry
+  5: fourYears(100,"3 hrs"),   // Biology
+  6: fourYears(100,"3 hrs"),   // History
+  7: fourYears(80,"3 hrs"),    // Geography
+  8: [                            // Economics — 2 years only
+    {year:"2017 E.C.",questions:100,duration:"3 hrs",score:null},
+    {year:"2016 E.C.",questions:100,duration:"3 hrs",score:null},
+  ],
+  9: fourYears(100,"3 hrs"),   // SAT
+};
+const defaultPapers = (id:number): Paper[] => allYearsPapers[id] ?? fourYears(60,"2.5 hrs");
 
 const scoreHistory = [
   {month:"Feb",score:62},{month:"Mar",score:68},{month:"Apr",score:71},
@@ -734,7 +738,7 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
         </div>
         {/* Year chips — filter, not navigation */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {["All Years",...CHIP_YEARS].map(y=>{
+          {["All Years",...papers.map(p=>p.year.split(" ")[0])].map(y=>{
             const active=selectedYear===y;
             return (
               <button key={y}
