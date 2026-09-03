@@ -39,21 +39,21 @@ type Screen =
 // ─── Subjects ─────────────────────────────────────────────────────────────────
 
 const subjects = [
-  { id: 1,  name: "Mathematics", icon: "📐", papers: 12, completion: 72, color: "#6c3fcf", bg: "#ede9f9" },
-  { id: 2,  name: "English",     icon: "📖", papers: 10, completion: 55, color: "#0ea5e9", bg: "#e0f2fe" },
-  { id: 3,  name: "Physics",     icon: "⚡", papers:  9, completion: 40, color: "#f59e0b", bg: "#fef3c7" },
-  { id: 4,  name: "Chemistry",   icon: "🧪", papers: 11, completion: 30, color: "#10b981", bg: "#d1fae5" },
-  { id: 5,  name: "Biology",     icon: "🧬", papers:  8, completion: 60, color: "#ec4899", bg: "#fce7f3" },
-  { id: 6,  name: "History",     icon: "📜", papers:  8, completion: 45, color: "#f97316", bg: "#ffedd5" },
-  { id: 7,  name: "Geography",   icon: "🌍", papers:  6, completion: 20, color: "#14b8a6", bg: "#ccfbf1" },
-  { id: 8,  name: "Economics",   icon: "📊", papers:  7, completion: 25, color: "#84cc16", bg: "#f7fee7" },
-  { id: 9,  name: "SAT",         icon: "🎯", papers:  6, completion: 35, color: "#ef4444", bg: "#fee2e2" },
+  { id: 1,  name: "Mathematics", icon: "📐", papers:  4, completion: 72, color: "#6c3fcf", bg: "#ede9f9" },
+  { id: 2,  name: "English",     icon: "📖", papers:  4, completion: 55, color: "#0ea5e9", bg: "#e0f2fe" },
+  { id: 3,  name: "Physics",     icon: "⚡", papers:  4, completion: 40, color: "#f59e0b", bg: "#fef3c7" },
+  { id: 4,  name: "Chemistry",   icon: "🧪", papers:  4, completion: 30, color: "#10b981", bg: "#d1fae5" },
+  { id: 5,  name: "Biology",     icon: "🧬", papers:  4, completion: 60, color: "#ec4899", bg: "#fce7f3" },
+  { id: 6,  name: "History",     icon: "📜", papers:  4, completion: 45, color: "#f97316", bg: "#ffedd5" },
+  { id: 7,  name: "Geography",   icon: "🌍", papers:  4, completion: 20, color: "#14b8a6", bg: "#ccfbf1" },
+  { id: 8,  name: "Economics",   icon: "📊", papers:  2, completion: 25, color: "#84cc16", bg: "#f7fee7" },
+  { id: 9,  name: "SAT",         icon: "🎯", papers:  4, completion: 35, color: "#ef4444", bg: "#fee2e2" },
 ];
 
 const NATURAL_IDS = [2, 1, 9, 3, 4, 5]; // English, Math, SAT, Physics, Chemistry, Biology
 const SOCIAL_IDS  = [2, 1, 9, 6, 7, 8]; // English, Math, SAT, History, Geography, Economics
 
-const CHIP_YEARS = ["2017", "2016", "2015", "2014"];
+
 
 // ─── Full-Paper Questions ─────────────────────────────────────────────────────
 
