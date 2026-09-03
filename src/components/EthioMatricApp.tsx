@@ -1425,16 +1425,16 @@ function ProgressScreen() {
 
 // ─── Profile Screen ───────────────────────────────────────────────────────────
 
-function ProfileScreen({stream,onStreamChange,darkMode,onDarkMode,onNotifications,onHelpSupport,onSettings,userName,userGrade}:{
+function ProfileScreen({stream,onStreamChange,darkMode,onDarkMode,onNotifications,onHelpSupport,onSettings,onAbout,userName,userGrade}:{
   stream:Stream;onStreamChange:(s:Stream)=>void;darkMode:boolean;onDarkMode:(v:boolean)=>void;
-  onNotifications:()=>void;onHelpSupport:()=>void;onSettings:()=>void;
+  onNotifications:()=>void;onHelpSupport:()=>void;onSettings:()=>void;onAbout:()=>void;
   userName:string;userGrade:string;
 }) {
   const menuItems=[
     {icon:Bell,       label:"Notifications",       sub:"Push & email alerts",   action:onNotifications},
     {icon:Settings,   label:"Settings",             sub:"Name & grade",          action:onSettings},
     {icon:HelpCircle, label:"Help & Support",       sub:"FAQ & contact",         action:onHelpSupport},
-    {icon:Info,       label:"About EthioMatric+",  sub:"Version 2.1.0",         action:()=>{}},
+    {icon:Info,       label:"About EthioMatric+",  sub:"Version 2.1.0",         action:onAbout},
   ];
   return (
     <div className="flex flex-col gap-5 pb-6">
@@ -1534,9 +1534,9 @@ export default function App() {
   useEffect(()=>{try{localStorage.setItem("userGrade",userGrade);}catch{}},        [userGrade]);
 
   const inQuiz=screen.name==="quiz";
-  const hideNav=inQuiz||screen.name==="subjectDetails";
+  const hideNav=inQuiz||["subjectDetails","notifications","helpSupport","settings","about"].includes(screen.name);
   const activeTab=["subjectDetails","quiz"].includes(screen.name)?"exams":
-    ["notifications","helpSupport","settings"].includes(screen.name)?"profile":screen.name;
+    ["notifications","helpSupport","settings","about"].includes(screen.name)?"profile":screen.name;
 
   const navigate=(tab:string,subjectId?:number)=>{
     if (tab==="exams"&&subjectId){
@@ -1610,6 +1610,7 @@ export default function App() {
                   <ProfileScreen stream={stream} onStreamChange={setStream} darkMode={darkMode}
                     onDarkMode={setDarkMode} onNotifications={()=>setScreen({name:"notifications",from:"profile"})}
                     onHelpSupport={()=>setScreen({name:"helpSupport"})} onSettings={()=>setScreen({name:"settings"})}
+                    onAbout={()=>setScreen({name:"about"})}
                     userName={userName} userGrade={userGrade}/>
                 </motion.div>
               )}
