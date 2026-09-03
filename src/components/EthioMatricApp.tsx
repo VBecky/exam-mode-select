@@ -1629,6 +1629,11 @@ export default function App() {
                   <SettingsScreen onBack={()=>setScreen({name:"profile"})} initName={userName} initGrade={userGrade} onSave={handleSaveSettings}/>
                 </motion.div>
               )}
+              {screen.name==="about"&&(
+                <motion.div key="about" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
+                  <AboutScreen onBack={()=>setScreen({name:"profile"})}/>
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
         </div>
