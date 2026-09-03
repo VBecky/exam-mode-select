@@ -184,26 +184,30 @@ function buildYearData(subjectName: string, year: string): { year: string; grade
   };
 }
 
-const allYearsPapers: Record<number, {year:string;questions:number;duration:string;score:number|null}[]> = {
-  1:[
-    {year:"2017 E.C.",questions:65,duration:"3 hrs",  score:88},
-    {year:"2016 E.C.",questions:65,duration:"3 hrs",  score:74},
-    {year:"2015 E.C.",questions:60,duration:"2.5 hrs",score:null},
-    {year:"2014 E.C.",questions:60,duration:"2.5 hrs",score:91},
-    {year:"2013 E.C.",questions:55,duration:"2 hrs",  score:null},
-    {year:"2012 E.C.",questions:55,duration:"2 hrs",  score:78},
-  ],
-  2:[
-    {year:"2017 E.C.",questions:70,duration:"3 hrs",  score:65},
-    {year:"2016 E.C.",questions:70,duration:"3 hrs",  score:null},
-    {year:"2015 E.C.",questions:65,duration:"2.5 hrs",score:78},
-  ],
-};
-const defaultPapers = (id:number) => allYearsPapers[id] ?? [
-  {year:"2017 E.C.",questions:60,duration:"2.5 hrs",score:null},
-  {year:"2016 E.C.",questions:55,duration:"2 hrs",  score:null},
-  {year:"2015 E.C.",questions:55,duration:"2 hrs",  score:72},
+// Per-subject past papers. Most subjects have 4 years (2014–2017 E.C.);
+// Economics has 2 years (2016–2017 E.C).
+type Paper = {year:string;questions:number;duration:string;score:number|null};
+const fourYears = (q:number,dur:string): Paper[] => [
+  {year:"2017 E.C.",questions:q,duration:dur,score:null},
+  {year:"2016 E.C.",questions:q,duration:dur,score:null},
+  {year:"2015 E.C.",questions:q,duration:dur,score:null},
+  {year:"2014 E.C.",questions:q,duration:dur,score:null},
 ];
+const allYearsPapers: Record<number, Paper[]> = {
+  1: fourYears(65,"3 hrs"),    // Mathematics
+  2: fourYears(70,"3 hrs"),    // English
+  3: fourYears(60,"3 hrs"),    // Physics
+  4: fourYears(80,"3 hrs"),    // Chemistry
+  5: fourYears(100,"3 hrs"),   // Biology
+  6: fourYears(100,"3 hrs"),   // History
+  7: fourYears(80,"3 hrs"),    // Geography
+  8: [                            // Economics — 2 years only
+    {year:"2017 E.C.",questions:100,duration:"3 hrs",score:null},
+    {year:"2016 E.C.",questions:100,duration:"3 hrs",score:null},
+  ],
+  9: fourYears(100,"3 hrs"),   // SAT
+};
+const defaultPapers = (id:number): Paper[] => allYearsPapers[id] ?? fourYears(60,"2.5 hrs");
 
 const scoreHistory = [
   {month:"Feb",score:62},{month:"Mar",score:68},{month:"Apr",score:71},
