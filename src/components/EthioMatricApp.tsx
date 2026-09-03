@@ -33,7 +33,8 @@ type Screen =
   | { name: "profile" }
   | { name: "notifications"; from: "home" | "profile" }
   | { name: "helpSupport" }
-  | { name: "settings" };
+  | { name: "settings" }
+  | { name: "about" };
 
 // ─── Subjects ─────────────────────────────────────────────────────────────────
 
@@ -938,6 +939,55 @@ function HelpSupportScreen({onBack}:{onBack:()=>void}) {
   );
 }
 
+// ─── About Screen ─────────────────────────────────────────────────────────────
+
+function AboutScreen({onBack}:{onBack:()=>void}) {
+  return (
+    <div className="flex flex-col gap-5 pb-6">
+      <div className="flex items-center gap-3 pt-2">
+        <button className="w-9 h-9 rounded-2xl bg-card border border-border flex items-center justify-center shadow-sm" onClick={onBack}>
+          <ArrowLeft size={18} className="text-foreground"/>
+        </button>
+        <div><h1 className="text-xl font-bold text-foreground">About EthioMatric+</h1></div>
+      </div>
+
+      <div className="bg-card rounded-3xl border border-border p-6 flex flex-col items-center text-center shadow-sm">
+        <div className="w-16 h-16 rounded-3xl flex items-center justify-center text-3xl mb-3"
+          style={{background:"linear-gradient(135deg,var(--primary),#9D6FF7)"}}>🎓</div>
+        <h2 className="text-lg font-bold text-foreground">EthioMatric+</h2>
+        <p className="text-xs text-muted-foreground mt-1">Version 2.1.0</p>
+        <p className="text-sm text-muted-foreground mt-4 leading-relaxed">
+          A premium exam preparation app for Ethiopian Grade 12 students. Practice real
+          national exam papers by subject and year, track your progress, and build a
+          daily study streak — in Practice mode with instant feedback, or Exam mode
+          under real test conditions.
+        </p>
+      </div>
+
+      <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
+        {[
+          {icon:BookOpen, label:"7+ years of past papers", sub:"2010 – 2017 E.C. national exams"},
+          {icon:Target,   label:"Practice & Exam modes",   sub:"Instant feedback or real test conditions"},
+          {icon:Flame,    label:"Daily streaks",           sub:"Stay consistent, study every day"},
+          {icon:TrendingUp,label:"Progress tracking",      sub:"Scores, subjects and weekly activity"},
+        ].map((f,i)=>(
+          <div key={i} className={`flex items-center gap-3 px-5 py-4 ${i>0?"border-t border-border":""}`}>
+            <div className="w-10 h-10 rounded-2xl bg-secondary flex items-center justify-center shrink-0">
+              <f.icon size={18} className="text-primary"/>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">{f.label}</p>
+              <p className="text-xs text-muted-foreground">{f.sub}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-center text-xs text-muted-foreground">Made with ❤️ for Ethiopian students</p>
+    </div>
+  );
+}
+
 // ─── Settings Screen ──────────────────────────────────────────────────────────
 
 function SettingsScreen({onBack,initName,initGrade,onSave}:{
@@ -1375,16 +1425,16 @@ function ProgressScreen() {
 
 // ─── Profile Screen ───────────────────────────────────────────────────────────
 
-function ProfileScreen({stream,onStreamChange,darkMode,onDarkMode,onNotifications,onHelpSupport,onSettings,userName,userGrade}:{
+function ProfileScreen({stream,onStreamChange,darkMode,onDarkMode,onNotifications,onHelpSupport,onSettings,onAbout,userName,userGrade}:{
   stream:Stream;onStreamChange:(s:Stream)=>void;darkMode:boolean;onDarkMode:(v:boolean)=>void;
-  onNotifications:()=>void;onHelpSupport:()=>void;onSettings:()=>void;
+  onNotifications:()=>void;onHelpSupport:()=>void;onSettings:()=>void;onAbout:()=>void;
   userName:string;userGrade:string;
 }) {
   const menuItems=[
     {icon:Bell,       label:"Notifications",       sub:"Push & email alerts",   action:onNotifications},
     {icon:Settings,   label:"Settings",             sub:"Name & grade",          action:onSettings},
     {icon:HelpCircle, label:"Help & Support",       sub:"FAQ & contact",         action:onHelpSupport},
-    {icon:Info,       label:"About EthioMatric+",  sub:"Version 2.1.0",         action:()=>{}},
+    {icon:Info,       label:"About EthioMatric+",  sub:"Version 2.1.0",         action:onAbout},
   ];
   return (
     <div className="flex flex-col gap-5 pb-6">
@@ -1484,9 +1534,9 @@ export default function App() {
   useEffect(()=>{try{localStorage.setItem("userGrade",userGrade);}catch{}},        [userGrade]);
 
   const inQuiz=screen.name==="quiz";
-  const hideNav=inQuiz||screen.name==="subjectDetails";
+  const hideNav=inQuiz||["subjectDetails","notifications","helpSupport","settings","about"].includes(screen.name);
   const activeTab=["subjectDetails","quiz"].includes(screen.name)?"exams":
-    ["notifications","helpSupport","settings"].includes(screen.name)?"profile":screen.name;
+    ["notifications","helpSupport","settings","about"].includes(screen.name)?"profile":screen.name;
 
   const navigate=(tab:string,subjectId?:number)=>{
     if (tab==="exams"&&subjectId){
@@ -1560,6 +1610,7 @@ export default function App() {
                   <ProfileScreen stream={stream} onStreamChange={setStream} darkMode={darkMode}
                     onDarkMode={setDarkMode} onNotifications={()=>setScreen({name:"notifications",from:"profile"})}
                     onHelpSupport={()=>setScreen({name:"helpSupport"})} onSettings={()=>setScreen({name:"settings"})}
+                    onAbout={()=>setScreen({name:"about"})}
                     userName={userName} userGrade={userGrade}/>
                 </motion.div>
               )}
@@ -1576,6 +1627,11 @@ export default function App() {
               {screen.name==="settings"&&(
                 <motion.div key="settings" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
                   <SettingsScreen onBack={()=>setScreen({name:"profile"})} initName={userName} initGrade={userGrade} onSave={handleSaveSettings}/>
+                </motion.div>
+              )}
+              {screen.name==="about"&&(
+                <motion.div key="about" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
+                  <AboutScreen onBack={()=>setScreen({name:"profile"})}/>
                 </motion.div>
               )}
             </AnimatePresence>
