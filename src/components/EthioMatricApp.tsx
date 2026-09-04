@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -1523,9 +1523,10 @@ export default function App() {
 
   const scrollRef=useRef<HTMLDivElement>(null);
 
-  // Refresh lastPaper whenever we return to home, and reset scroll on any screen change
-  useEffect(()=>{
-    if(scrollRef.current) scrollRef.current.scrollTop=0;
+  // Reset before the browser paints the next screen so a previous screen's
+  // scroll position never flashes during navigation.
+  useLayoutEffect(()=>{
+    scrollRef.current?.scrollTo({top:0,left:0,behavior:"instant"});
     if(screen.name==="home"){
       try{const s=localStorage.getItem("lastPaper");setLastPaper(s?JSON.parse(s):null);}catch{}
     }
@@ -1574,9 +1575,9 @@ export default function App() {
 
 
           <div className="px-5">
-            <AnimatePresence mode="wait">
+            <AnimatePresence initial={false} mode="popLayout">
               {screen.name==="home"&&(
-                <motion.div key="home" initial={{opacity:0,x:-12}} animate={{opacity:1,x:0}} exit={{opacity:0,x:12}} transition={{duration:0.18}}>
+                <motion.div key="home" initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <HomeScreen onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName} lastPaper={lastPaper} onContinue={(lp)=>{
                     const s=subjects.find(x=>x.id===lp.subjectId);
                     if(!s){setScreen({name:"exams"});return;}
@@ -1587,30 +1588,30 @@ export default function App() {
                 </motion.div>
               )}
               {screen.name==="exams"&&(
-                <motion.div key="exams" initial={{opacity:0,x:-12}} animate={{opacity:1,x:0}} exit={{opacity:0,x:12}} transition={{duration:0.18}}>
+                <motion.div key="exams" initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <ExamsScreen stream={stream} onSubjectSelect={id=>{const s=subjects.find(x=>x.id===id)!;setScreen({name:"subjectDetails",subject:s});}}/>
                 </motion.div>
               )}
               {screen.name==="subjectDetails"&&(
-                <motion.div key="subjectDetails" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
+                <motion.div key="subjectDetails" initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <SubjectDetails subject={screen.subject} onBack={()=>setScreen({name:"exams"})}
                     onOpenQuiz={(q,t,m,d)=>openQuiz(screen.subject,q,t,m,d)}/>
                 </motion.div>
               )}
               {screen.name==="quiz"&&(
-                <motion.div key="quiz" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
+                <motion.div key="quiz" initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <QuizScreen questions={screen.questions} subject={screen.subject} title={screen.title}
                     initialMode={screen.initialMode} durationSeconds={screen.durationSeconds}
                     onBack={()=>setScreen({name:"subjectDetails",subject:screen.subject})}/>
                 </motion.div>
               )}
               {screen.name==="progress"&&(
-                <motion.div key="progress" initial={{opacity:0,x:-12}} animate={{opacity:1,x:0}} exit={{opacity:0,x:12}} transition={{duration:0.18}}>
+                <motion.div key="progress" initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <ProgressScreen/>
                 </motion.div>
               )}
               {screen.name==="profile"&&(
-                <motion.div key="profile" initial={{opacity:0,x:-12}} animate={{opacity:1,x:0}} exit={{opacity:0,x:12}} transition={{duration:0.18}}>
+                <motion.div key="profile" initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <ProfileScreen stream={stream} onStreamChange={setStream} darkMode={darkMode}
                     onDarkMode={setDarkMode} onNotifications={()=>setScreen({name:"notifications",from:"profile"})}
                     onHelpSupport={()=>setScreen({name:"helpSupport"})} onSettings={()=>setScreen({name:"settings"})}
@@ -1619,22 +1620,22 @@ export default function App() {
                 </motion.div>
               )}
               {screen.name==="notifications"&&(
-                <motion.div key="notifications" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
+                <motion.div key="notifications" initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <NotificationsScreen onBack={()=>setScreen({name:screen.from as any})}/>
                 </motion.div>
               )}
               {screen.name==="helpSupport"&&(
-                <motion.div key="helpSupport" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
+                <motion.div key="helpSupport" initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <HelpSupportScreen onBack={()=>setScreen({name:"profile"})}/>
                 </motion.div>
               )}
               {screen.name==="settings"&&(
-                <motion.div key="settings" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
+                <motion.div key="settings" initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <SettingsScreen onBack={()=>setScreen({name:"profile"})} initName={userName} initGrade={userGrade} onSave={handleSaveSettings}/>
                 </motion.div>
               )}
               {screen.name==="about"&&(
-                <motion.div key="about" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} transition={{duration:0.18}}>
+                <motion.div key="about" initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <AboutScreen onBack={()=>setScreen({name:"profile"})}/>
                 </motion.div>
               )}
