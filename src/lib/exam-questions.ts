@@ -1,4 +1,4 @@
-// EthioMatric+ — Real paper questions per subject/year.
+// EthioExam — Real paper questions per subject/year.
 // Add new years by dropping another entry under PAPER_QUESTIONS[subjectId][year].
 
 export type Question = {
@@ -403,7 +403,7 @@ const SAT_2017 = mk([
 
 // ─── Registry ────────────────────────────────────────────────────────────────
 
-// Subject IDs come from EthioMatricApp:
+// Subject IDs come from EthioExamApp:
 // 1 Math, 2 English, 3 Physics, 4 Chemistry, 5 Biology,
 // 6 History, 7 Geography, 8 Economics, 9 SAT
 const PAPER_QUESTIONS: Record<number, Record<string, Question[]>> = {

@@ -1,19 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import EthioMatricApp from "@/components/EthioMatricApp";
+import EthioExamApp from "@/components/EthioExamApp";
 import { loadRemoteQuestions } from "@/lib/exam-questions";
 
 export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "EthioMatric+ — Ethiopian Grade 12 Matric Exam Practice" },
+      { title: "EthioExam — Ethiopian Grade 12 Matric Exam Practice" },
       {
         name: "description",
         content:
           "Practice Ethiopian Grade 12 national exam papers by subject and year, with practice mode feedback, timed exam mode, and progress tracking.",
       },
-      { property: "og:title", content: "EthioMatric+ — Ethiopian Grade 12 Matric Exam Practice" },
+      { property: "og:title", content: "EthioExam — Ethiopian Grade 12 Matric Exam Practice" },
       {
         property: "og:description",
         content:
@@ -41,5 +41,5 @@ function Index() {
   if (!ready) {
     return <div style={{ minHeight: "100vh", background: "#e8e4f5" }} />;
   }
-  return <EthioMatricApp />;
+  return <EthioExamApp />;
 }
