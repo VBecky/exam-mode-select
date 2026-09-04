@@ -1569,13 +1569,8 @@ export default function App() {
         className={`relative w-full max-w-[390px] ${darkMode?"dark":""}`}
         style={{height:"100dvh",background:"var(--background)",fontFamily:"'Inter',sans-serif",overflow:"hidden"}}>
 
-        {/* Scroll container */}
-        <div ref={scrollRef} className="absolute inset-0 overflow-y-auto scrollbar-hide" style={{paddingBottom:hideNav?0:76}}>
-          {/* Status bar removed — native mobile status bar handles time/icons */}
-          <div className="pt-4"/>
-
-
-          <div className="px-5">
+        {/* Screens — each owns its scroll position so navigation never shows the old page scrolling back */}
+        <div className="absolute inset-0">
             <AnimatePresence initial={false} mode="popLayout">
               {screen.name==="home"&&(
                 <motion.div key="home" initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
