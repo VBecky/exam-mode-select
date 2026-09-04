@@ -1525,8 +1525,9 @@ export default function App() {
 
   // Reset before the browser paints the next screen so a previous screen's
   // scroll position never flashes during navigation.
+  // Each screen owns its scroll container (see below), so a new screen always
+  // opens at its top and the previous screen never visibly scrolls back.
   useLayoutEffect(()=>{
-    scrollRef.current?.scrollTo({top:0,left:0,behavior:"instant"});
     if(screen.name==="home"){
       try{const s=localStorage.getItem("lastPaper");setLastPaper(s?JSON.parse(s):null);}catch{}
     }
