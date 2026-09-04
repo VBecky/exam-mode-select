@@ -793,7 +793,7 @@ const NOTIFICATIONS = [
   {id:4,title:"Physics 2015 E.C. added",body:"Physics exam papers for 2015 E.C. are now available.",time:"2d ago",read:true,icon:"⚡"},
   {id:5,title:"Achievement unlocked",body:"You earned the 'Top Scorer' badge with 91% in Chemistry.",time:"3d ago",read:true,icon:"🏆"},
   {id:6,title:"Study reminder",body:"You haven't studied today. Open a subject to continue your streak.",time:"4d ago",read:true,icon:"📚"},
-  {id:7,title:"New feature: Dark Mode",body:"EthioMatric+ now supports dark mode. Try it in Profile > Dark Mode.",time:"5d ago",read:true,icon:"🌙"},
+  {id:7,title:"New feature: Dark Mode",body:"EthioExam now supports dark mode. Try it in Profile > Dark Mode.",time:"5d ago",read:true,icon:"🌙"},
 ];
 
 function NotificationsScreen({onBack}:{onBack:()=>void}) {
@@ -952,13 +952,13 @@ function AboutScreen({onBack}:{onBack:()=>void}) {
         <button className="w-9 h-9 rounded-2xl bg-card border border-border flex items-center justify-center shadow-sm" onClick={onBack}>
           <ArrowLeft size={18} className="text-foreground"/>
         </button>
-        <div><h1 className="text-xl font-bold text-foreground">About EthioMatric+</h1></div>
+        <div><h1 className="text-xl font-bold text-foreground">About EthioExam</h1></div>
       </div>
 
       <div className="bg-card rounded-3xl border border-border p-6 flex flex-col items-center text-center shadow-sm">
         <div className="w-16 h-16 rounded-3xl flex items-center justify-center text-3xl mb-3"
           style={{background:"linear-gradient(135deg,var(--primary),#9D6FF7)"}}>🎓</div>
-        <h2 className="text-lg font-bold text-foreground">EthioMatric+</h2>
+        <h2 className="text-lg font-bold text-foreground">EthioExam</h2>
         <p className="text-xs text-muted-foreground mt-1">Version 2.1.0</p>
         <p className="text-sm text-muted-foreground mt-4 leading-relaxed">
           A premium exam preparation app for Ethiopian Grade 12 students. Practice real
@@ -1438,7 +1438,7 @@ function ProfileScreen({stream,onStreamChange,darkMode,onDarkMode,onNotification
     {icon:Bell,       label:"Notifications",       sub:"Push & email alerts",   action:onNotifications},
     {icon:Settings,   label:"Settings",             sub:"Name & grade",          action:onSettings},
     {icon:HelpCircle, label:"Help & Support",       sub:"FAQ & contact",         action:onHelpSupport},
-    {icon:Info,       label:"About EthioMatric+",  sub:"Version 2.1.0",         action:onAbout},
+    {icon:Info,       label:"About EthioExam",  sub:"Version 2.1.0",         action:onAbout},
   ];
   return (
     <div className="flex flex-col gap-5 pb-6">
