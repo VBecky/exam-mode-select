@@ -451,8 +451,7 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
   // When exam is submitted, scroll results back to the top (question 1)
   useEffect(()=>{
     if(!submitted) return;
-    const el=document.getElementById("phone-container")?.querySelector<HTMLDivElement>(".overflow-y-auto");
-    if(el) el.scrollTop=0;
+    document.getElementById("phone-container")?.querySelectorAll<HTMLDivElement>(".overflow-y-auto").forEach(el=>{el.scrollTop=0;});
   },[submitted]);
 
   const formatTime=(s:number)=>{
@@ -1521,7 +1520,7 @@ export default function App() {
   const [userGrade,setUserGrade]=useState(()=>{try{return localStorage.getItem("userGrade")||"12";}catch{return "12";}});
   const [lastPaper,setLastPaper]=useState<LastPaper|null>(()=>{try{const s=localStorage.getItem("lastPaper");return s?JSON.parse(s):null;}catch{return null;}});
 
-  const scrollRef=useRef<HTMLDivElement>(null);
+  
 
   // Reset before the browser paints the next screen so a previous screen's
   // scroll position never flashes during navigation.
@@ -1636,7 +1635,6 @@ export default function App() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
         </div>
 
         {/* Bottom nav — always visible except in quiz */}
