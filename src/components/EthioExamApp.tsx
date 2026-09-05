@@ -11,7 +11,8 @@ import {
   Pencil, Save,
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
-import { recordStudyDay, getStreakCount, getWeek, type StreakDay } from "@/lib/streak";
+import { recordStudyDay, getStreakCount, getWeek, getWeeks, type StreakDay, type WeekBlock } from "@/lib/streak";
+import { recordExamAttempt, getExamStats, type ExamStats } from "@/lib/exam-history";
 import { recordRecentExam, updateRecentExamScore, getRecentExams, type RecentExam } from "@/lib/recent-exams";
 import MathText from "@/components/MathText";
 
@@ -462,6 +463,7 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
     const score=Math.round((correct/questions.length)*100);
     const year=title.replace(subject.name,"").trim();
     updateRecentExamScore(subject.id,year,score);
+    recordExamAttempt({subjectId:subject.id,subjectName:subject.name,year,score,correct,total:questions.length});
   },[mode,submitted]);
 
   const formatTime=(s:number)=>{
@@ -1267,10 +1269,16 @@ function ExamsScreen({onSubjectSelect,stream}:{onSubjectSelect:(id:number)=>void
 // ─── Progress Screen ──────────────────────────────────────────────────────────
 
 function StreakCard() {
-  const [week,setWeek]=useState<StreakDay[]>([]);
+  const [weeks,setWeeks]=useState<WeekBlock[]>([]);
   const [count,setCount]=useState(0);
-  useEffect(()=>{setWeek(getWeek());setCount(getStreakCount());},[]);
-  const doneThisWeek=week.filter(d=>d.active).length;
+  const scroller=useRef<HTMLDivElement|null>(null);
+  useEffect(()=>{setWeeks(getWeeks(8));setCount(getStreakCount());},[]);
+  // Start scrolled to the current week (right-most)
+  useLayoutEffect(()=>{
+    if(weeks.length&&scroller.current) scroller.current.scrollLeft=scroller.current.scrollWidth;
+  },[weeks.length]);
+  const current=weeks[weeks.length-1];
+  const doneThisWeek=current?current.days.filter(d=>d.active).length:0;
   return (
     <div className="bg-card rounded-3xl p-5 shadow-sm border border-border">
       <div className="flex items-center gap-3">
@@ -1281,27 +1289,38 @@ function StreakCard() {
           <p className="text-xl font-extrabold text-foreground leading-none">{count} <span className="text-sm font-semibold text-muted-foreground">day{count===1?"":"s"} streak</span></p>
           <p className="text-xs text-muted-foreground mt-1">{doneThisWeek}/7 days studied this week</p>
         </div>
+        <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-2 py-1 rounded-full">Swipe ←</span>
       </div>
-      <div className="flex gap-1.5 mt-4">
-        {week.map((d,i)=>(
-          <div key={d.key} className="flex-1 flex flex-col items-center gap-1.5">
-            <motion.div
-              initial={{scale:0.6,opacity:0}} animate={{scale:1,opacity:1}}
-              transition={{delay:i*0.045,type:"spring",stiffness:340,damping:20}}
-              className="w-full aspect-square rounded-2xl flex items-center justify-center border"
-              style={{
-                background:d.active?"var(--primary)":"var(--muted)",
-                borderColor:d.isToday?"var(--primary)":"transparent",
-                borderWidth:d.isToday?2:1,
-                opacity:d.isFuture&&!d.active?0.45:1,
-              }}>
-              {d.active
-                ? <CheckCircle size={16} className="text-primary-foreground"/>
-                : <span className="text-[11px] font-semibold text-muted-foreground">{d.isToday?"•":""}</span>}
-            </motion.div>
-            <span className={`text-[11px] ${d.isToday?"font-bold text-primary":"font-medium text-muted-foreground"}`}>{d.label}</span>
-          </div>
-        ))}
+
+      <div ref={scroller} className="mt-4 -mx-1 px-1 overflow-x-auto snap-x snap-mandatory" style={{scrollbarWidth:"none"}}>
+        <div className="flex gap-4">
+          {weeks.map(w=>(
+            <div key={w.offset} className="snap-end shrink-0" style={{width:"100%"}}>
+              <p className="text-[11px] font-semibold text-muted-foreground mb-2">{w.label}</p>
+              <div className="flex gap-1.5">
+                {w.days.map((d,i)=>(
+                  <div key={d.key} className="flex-1 flex flex-col items-center gap-1.5">
+                    <motion.div
+                      initial={{scale:0.6,opacity:0}} animate={{scale:1,opacity:1}}
+                      transition={{delay:i*0.045,type:"spring",stiffness:340,damping:20}}
+                      className="w-full aspect-square rounded-2xl flex items-center justify-center border"
+                      style={{
+                        background:d.active?"var(--primary)":"var(--muted)",
+                        borderColor:d.isToday?"var(--primary)":"transparent",
+                        borderWidth:d.isToday?2:1,
+                        opacity:d.isFuture&&!d.active?0.45:1,
+                      }}>
+                      {d.active
+                        ? <CheckCircle size={16} className="text-primary-foreground"/>
+                        : <span className="text-[11px] font-semibold text-muted-foreground">{d.isToday?"•":""}</span>}
+                    </motion.div>
+                    <span className={`text-[11px] ${d.isToday?"font-bold text-primary":"font-medium text-muted-foreground"}`}>{d.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -1475,6 +1494,9 @@ function ProfileScreen({stream,onStreamChange,darkMode,onDarkMode,onNotification
     {icon:HelpCircle, label:"Help & Support",       sub:"FAQ & contact",         action:onHelpSupport},
     {icon:Info,       label:"About EthioExam",  sub:"Version 2.1.0",         action:onAbout},
   ];
+  const [stats,setStats]=useState<ExamStats>({examsDone:0,avgScore:0,bestScore:0});
+  const [streak,setStreak]=useState(0);
+  useEffect(()=>{setStats(getExamStats());setStreak(getStreakCount());},[]);
   return (
     <div className="flex flex-col gap-5 pb-6">
       <div className="pt-2"><h1 className="text-2xl font-bold text-foreground">Profile</h1></div>
@@ -1488,7 +1510,7 @@ function ProfileScreen({stream,onStreamChange,darkMode,onDarkMode,onNotification
         <button onClick={onSettings} className="text-sm font-semibold text-primary">Edit</button>
       </div>
       <div className="grid grid-cols-3 gap-2">
-        {[{label:"Exams Done",value:"23"},{label:"Avg Score",value:"76%"},{label:"Day Streak",value:"7 🔥"}].map(s=>(
+        {[{label:"Exams Done",value:String(stats.examsDone)},{label:"Avg Score",value:`${stats.avgScore}%`},{label:"Day Streak",value:`${streak} 🔥`}].map(s=>(
           <div key={s.label} className="bg-card rounded-2xl p-3 shadow-sm border border-border text-center"><p className="text-lg font-extrabold text-foreground">{s.value}</p><p className="text-xs text-muted-foreground mt-0.5">{s.label}</p></div>
         ))}
       </div>

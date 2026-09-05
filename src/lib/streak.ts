@@ -62,12 +62,12 @@ export type StreakDay = {
   isFuture: boolean;
 };
 
-/** Current week, Monday → Sunday. */
-export function getWeek(days: string[] = getStudyDays()): StreakDay[] {
+/** A week (Monday → Sunday) offset back from the current week. */
+export function getWeek(days: string[] = getStudyDays(), weekOffset = 0): StreakDay[] {
   const set = new Set(days);
   const now = new Date();
   const dow = (now.getDay() + 6) % 7; // 0 = Monday
-  const monday = shift(now, -dow);
+  const monday = shift(now, -dow + weekOffset * 7);
   const labels = ["M", "T", "W", "T", "F", "S", "S"];
   const tKey = todayKey(now);
   return labels.map((label, i) => {
@@ -78,7 +78,21 @@ export function getWeek(days: string[] = getStudyDays()): StreakDay[] {
       key,
       active: set.has(key),
       isToday: key === tKey,
-      isFuture: i > dow,
+      isFuture: d.getTime() > now.getTime() && key !== tKey,
     };
   });
 }
+
+export type WeekBlock = { offset: number; label: string; days: StreakDay[] };
+
+/** The last `count` weeks, oldest first, ending with the current week. */
+export function getWeeks(count = 6, days: string[] = getStudyDays()): WeekBlock[] {
+  const out: WeekBlock[] = [];
+  for (let o = -(count - 1); o <= 0; o++) {
+    const week = getWeek(days, o);
+    const label = o === 0 ? "This week" : o === -1 ? "Last week" : `${-o} weeks ago`;
+    out.push({ offset: o, label, days: week });
+  }
+  return out;
+}
+
