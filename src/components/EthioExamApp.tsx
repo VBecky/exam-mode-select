@@ -1106,6 +1106,8 @@ function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
   lastPaper:LastPaper|null;
   userName:string;
 }) {
+  const [recentExams,setRecentExams]=useState<RecentExam[]>([]);
+  useEffect(()=>{setRecentExams(getRecentExams());},[]);
   const lpSubject=lastPaper?subjects.find(s=>s.id===lastPaper.subjectId):null;
   const defaultSubject=subjects.find(s=>s.name==="Mathematics")??subjects[0];
   const displaySubject=lpSubject??defaultSubject;
