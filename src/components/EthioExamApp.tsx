@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
 import { recordStudyDay, getStreakCount, getWeek, type StreakDay } from "@/lib/streak";
+import { recordRecentExam, updateRecentExamScore, getRecentExams, type RecentExam } from "@/lib/recent-exams";
 import MathText from "@/components/MathText";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -663,6 +664,10 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
     const title=`${subject.name} ${sheetPaper.year}`;
     const questions=getPaperQuestions(subject.id,sheetPaper.year,subject.name,sheetPaper.questions);
     recordStudyDay();
+    recordRecentExam({
+      subjectId:subject.id,year:sheetPaper.year,duration:sheetPaper.duration,
+      questionsCount:sheetPaper.questions,mode,
+    });
     try{
       localStorage.setItem("lastPaper",JSON.stringify({
         subjectId:subject.id,year:sheetPaper.year,duration:sheetPaper.duration,
