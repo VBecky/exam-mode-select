@@ -11,7 +11,8 @@ import {
   Pencil, Save,
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
-import { recordStudyDay, getStreakCount, getWeek, type StreakDay } from "@/lib/streak";
+import { recordStudyDay, getStreakCount, getWeek, getWeeks, type StreakDay, type WeekBlock } from "@/lib/streak";
+import { recordExamAttempt, getExamStats, type ExamStats } from "@/lib/exam-history";
 import { recordRecentExam, updateRecentExamScore, getRecentExams, type RecentExam } from "@/lib/recent-exams";
 import MathText from "@/components/MathText";
 
@@ -462,6 +463,7 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
     const score=Math.round((correct/questions.length)*100);
     const year=title.replace(subject.name,"").trim();
     updateRecentExamScore(subject.id,year,score);
+    recordExamAttempt({subjectId:subject.id,subjectName:subject.name,year,score,correct,total:questions.length});
   },[mode,submitted]);
 
   const formatTime=(s:number)=>{
@@ -1488,7 +1490,7 @@ function ProfileScreen({stream,onStreamChange,darkMode,onDarkMode,onNotification
         <button onClick={onSettings} className="text-sm font-semibold text-primary">Edit</button>
       </div>
       <div className="grid grid-cols-3 gap-2">
-        {[{label:"Exams Done",value:"23"},{label:"Avg Score",value:"76%"},{label:"Day Streak",value:"7 🔥"}].map(s=>(
+        {[{label:"Exams Done",value:String(stats.examsDone)},{label:"Avg Score",value:`${stats.avgScore}%`},{label:"Day Streak",value:`${streak} 🔥`}].map(s=>(
           <div key={s.label} className="bg-card rounded-2xl p-3 shadow-sm border border-border text-center"><p className="text-lg font-extrabold text-foreground">{s.value}</p><p className="text-xs text-muted-foreground mt-0.5">{s.label}</p></div>
         ))}
       </div>
