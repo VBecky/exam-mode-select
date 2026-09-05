@@ -455,6 +455,15 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
     document.getElementById("phone-container")?.querySelectorAll<HTMLDivElement>(".overflow-y-auto").forEach(el=>{el.scrollTop=0;});
   },[submitted]);
 
+  // Save the exam score to Recent Exams
+  useEffect(()=>{
+    if(mode!=="exam"||!submitted||questions.length===0) return;
+    const correct=questions.filter(q=>answers[q.id]===q.answer).length;
+    const score=Math.round((correct/questions.length)*100);
+    const year=title.replace(subject.name,"").trim();
+    updateRecentExamScore(subject.id,year,score);
+  },[mode,submitted]);
+
   const formatTime=(s:number)=>{
     const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
     return h>0
