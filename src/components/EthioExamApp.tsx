@@ -1477,6 +1477,9 @@ function ProfileScreen({stream,onStreamChange,darkMode,onDarkMode,onNotification
     {icon:HelpCircle, label:"Help & Support",       sub:"FAQ & contact",         action:onHelpSupport},
     {icon:Info,       label:"About EthioExam",  sub:"Version 2.1.0",         action:onAbout},
   ];
+  const [stats,setStats]=useState<ExamStats>({examsDone:0,avgScore:0,bestScore:0});
+  const [streak,setStreak]=useState(0);
+  useEffect(()=>{setStats(getExamStats());setStreak(getStreakCount());},[]);
   return (
     <div className="flex flex-col gap-5 pb-6">
       <div className="pt-2"><h1 className="text-2xl font-bold text-foreground">Profile</h1></div>
