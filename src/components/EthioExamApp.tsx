@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
 import { recordStudyDay, getStreakCount, getWeek, type StreakDay } from "@/lib/streak";
+import { recordRecentExam, updateRecentExamScore, getRecentExams, type RecentExam } from "@/lib/recent-exams";
 import MathText from "@/components/MathText";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -454,6 +455,15 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
     document.getElementById("phone-container")?.querySelectorAll<HTMLDivElement>(".overflow-y-auto").forEach(el=>{el.scrollTop=0;});
   },[submitted]);
 
+  // Save the exam score to Recent Exams
+  useEffect(()=>{
+    if(mode!=="exam"||!submitted||questions.length===0) return;
+    const correct=questions.filter(q=>answers[q.id]===q.answer).length;
+    const score=Math.round((correct/questions.length)*100);
+    const year=title.replace(subject.name,"").trim();
+    updateRecentExamScore(subject.id,year,score);
+  },[mode,submitted]);
+
   const formatTime=(s:number)=>{
     const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
     return h>0
@@ -663,6 +673,10 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
     const title=`${subject.name} ${sheetPaper.year}`;
     const questions=getPaperQuestions(subject.id,sheetPaper.year,subject.name,sheetPaper.questions);
     recordStudyDay();
+    recordRecentExam({
+      subjectId:subject.id,year:sheetPaper.year,duration:sheetPaper.duration,
+      questionsCount:sheetPaper.questions,mode,
+    });
     try{
       localStorage.setItem("lastPaper",JSON.stringify({
         subjectId:subject.id,year:sheetPaper.year,duration:sheetPaper.duration,
@@ -1092,6 +1106,8 @@ function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
   lastPaper:LastPaper|null;
   userName:string;
 }) {
+  const [recentExams,setRecentExams]=useState<RecentExam[]>([]);
+  useEffect(()=>{setRecentExams(getRecentExams());},[]);
   const lpSubject=lastPaper?subjects.find(s=>s.id===lastPaper.subjectId):null;
   const defaultSubject=subjects.find(s=>s.name==="Mathematics")??subjects[0];
   const displaySubject=lpSubject??defaultSubject;
@@ -1171,19 +1187,39 @@ function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
       </div>
       <div>
         <h2 className="text-base font-bold text-foreground mb-3">Recent Exams</h2>
-        <div className="space-y-2.5">
-          {[
-            {name:"Physics 2015",score:74,date:"Yesterday",icon:"⚡",color:"#f59e0b"},
-            {name:"English 2016",score:65,date:"2 days ago",icon:"📖",color:"#0ea5e9"},
-            {name:"Biology 2014",score:88,date:"5 days ago",icon:"🧬",color:"#ec4899"},
-          ].map((e,i)=>(
-            <div key={i} className="bg-card rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-border">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style={{background:e.color+"18"}}>{e.icon}</div>
-              <div className="flex-1 min-w-0"><p className="font-semibold text-sm text-foreground">{e.name}</p><p className="text-xs text-muted-foreground">{e.date}</p></div>
-              <p className="text-base font-bold" style={{color:e.score>=80?"#10b981":e.score>=60?"#f59e0b":"#ef4444"}}>{e.score}%</p>
-            </div>
-          ))}
-        </div>
+        {recentExams.length===0?(
+          <div className="bg-card rounded-2xl p-5 shadow-sm border border-border text-center">
+            <p className="text-sm font-semibold text-foreground">No recent exams yet</p>
+            <p className="text-xs text-muted-foreground mt-1">Open a paper from Exams and it will show up here.</p>
+            <button onClick={()=>onNavigate("exams")}
+              className="mt-3 text-sm font-semibold text-primary">Browse Exams</button>
+          </div>
+        ):(
+          <div className="space-y-2.5">
+            {recentExams.map((e,i)=>{
+              const s=subjects.find(x=>x.id===e.subjectId);
+              if(!s) return null;
+              const days=Math.floor((Date.now()-e.ts)/86400000);
+              const dateLabel=days<=0?"Today":days===1?"Yesterday":`${days} days ago`;
+              return (
+                <motion.button key={`${e.subjectId}-${e.year}-${i}`} whileTap={{scale:0.98}}
+                  onClick={()=>onContinue({subjectId:e.subjectId,year:e.year,duration:e.duration,questionsCount:e.questionsCount,mode:e.mode,ts:e.ts})}
+                  className="w-full bg-card rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-border text-left">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0" style={{background:s.color+"18"}}>{s.icon}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm text-foreground truncate">{s.name} {e.year}</p>
+                    <p className="text-xs text-muted-foreground">{dateLabel} · {e.mode==="exam"?"Exam":"Practice"}</p>
+                  </div>
+                  {e.score!==null?(
+                    <p className="text-base font-bold" style={{color:e.score>=80?"#10b981":e.score>=60?"#f59e0b":"#ef4444"}}>{e.score}%</p>
+                  ):(
+                    <ChevronRight size={18} className="text-muted-foreground flex-shrink-0"/>
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
