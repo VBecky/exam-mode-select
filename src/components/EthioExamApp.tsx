@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
 import { recordStudyDay, getStreakCount, getWeek, getWeeks, type StreakDay, type WeekBlock } from "@/lib/streak";
-import { recordExamAttempt, getExamStats, type ExamStats } from "@/lib/exam-history";
+import { recordExamAttempt, getExamStats, getExamHistory, getSubjectProgress, getScoreTrend, getImprovement, getAchievements, type ExamStats, type ExamAttempt } from "@/lib/exam-history";
 import { recordRecentExam, updateRecentExamScore, getRecentExams, type RecentExam } from "@/lib/recent-exams";
 import MathText from "@/components/MathText";
 
@@ -211,15 +211,6 @@ const allYearsPapers: Record<number, Paper[]> = {
 };
 const defaultPapers = (id:number): Paper[] => allYearsPapers[id] ?? fourYears(60,"2.5 hrs");
 
-const scoreHistory = [
-  {month:"Feb",score:62},{month:"Mar",score:68},{month:"Apr",score:71},
-  {month:"May",score:75},{month:"Jun",score:82},{month:"Jul",score:88},
-];
-const achievementsList = [
-  {icon:"🔥",label:"7-Day Streak",earned:true},
-  {icon:"📚",label:"10 Papers Done",earned:true},
-  {icon:"⚡",label:"Speed Demon",earned:false},
-];
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
@@ -1385,26 +1376,59 @@ function WeeklyActivity() {
   );
 }
 
-function ProgressScreen() {
+function EmptyProgress({onBrowse}:{onBrowse:()=>void}) {
+  return (
+    <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}}
+      className="bg-card rounded-3xl p-7 shadow-sm border border-border flex flex-col items-center text-center gap-3">
+      <div className="w-16 h-16 rounded-3xl bg-secondary flex items-center justify-center"><BarChart2 size={26} className="text-primary"/></div>
+      <p className="font-bold text-foreground">No results yet</p>
+      <p className="text-xs text-muted-foreground max-w-[240px]">Finish your first exam and your scores, subject strengths and trends will show up here.</p>
+      <button onClick={onBrowse} className="mt-1 px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-bold">Browse Exams</button>
+    </motion.div>
+  );
+}
+
+function ProgressScreen({onBrowse}:{onBrowse:()=>void}) {
+  const [history,setHistory]=useState<ExamAttempt[]>([]);
+  const [streak,setStreak]=useState(0);
+  useEffect(()=>{setHistory(getExamHistory());setStreak(getStreakCount());},[]);
+
+  const stats=getExamStats(history.length?history:[]);
+  const has=history.length>0;
+  const subjectRows=getSubjectProgress(history);
+  const trend=getScoreTrend(8,history);
+  const delta=getImprovement(history);
+  const achievements=getAchievements(history,streak);
+  const totalQ=history.reduce((s,a)=>s+a.total,0);
+  const totalCorrect=history.reduce((s,a)=>s+a.correct,0);
+  const accuracy=totalQ?Math.round((totalCorrect/totalQ)*100):0;
+  const earned=achievements.filter(a=>a.earned).length;
+
   return (
     <div className="flex flex-col gap-5 pb-6">
       <div className="pt-2"><h1 className="text-2xl font-bold text-foreground">Progress</h1><p className="text-sm text-muted-foreground">Track your improvement</p></div>
 
-      {/* Hero: radial score ring + key stats */}
+      {/* Hero: radial score ring + real key stats */}
       <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} className="rounded-3xl p-5 text-white overflow-hidden relative"
         style={{background:"linear-gradient(135deg,#6c3fcf,#9061f9)"}}>
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10"/>
         <div className="absolute -bottom-14 -left-8 w-36 h-36 rounded-full bg-white/5"/>
         <div className="relative flex items-center gap-5">
-          <ScoreRing value={88}/>
+          <ScoreRing value={stats.avgScore}/>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold opacity-90">Overall Score</p>
-            <p className="text-xs opacity-70 mt-0.5">Keep it up — you're improving</p>
-            <span className="inline-flex items-center gap-1 mt-2.5 text-xs bg-white/20 px-2.5 py-1 rounded-full font-semibold"><TrendingUp size={12}/> +6% this month</span>
+            <p className="text-sm font-semibold opacity-90">Average Score</p>
+            <p className="text-xs opacity-70 mt-0.5">{has?`Across ${stats.examsDone} exam${stats.examsDone===1?"":"s"}`:"Take an exam to start tracking"}</p>
+            {has&&(
+              <span className="inline-flex items-center gap-1 mt-2.5 text-xs bg-white/20 px-2.5 py-1 rounded-full font-semibold">
+                <TrendingUp size={12}/> {delta>0?`+${delta}%`:delta<0?`${delta}%`:"Steady"} recently
+              </span>
+            )}
           </div>
         </div>
         <div className="relative grid grid-cols-3 gap-2.5 mt-5">
-          {[{label:"Completed",value:"23",icon:ListChecks},{label:"Avg Score",value:"76%",icon:Target},{label:"Best",value:"95%",icon:Trophy}].map(s=>(
+          {[{label:"Exams",value:`${stats.examsDone}`,icon:ListChecks},
+            {label:"Accuracy",value:`${accuracy}%`,icon:Target},
+            {label:"Best",value:`${stats.bestScore}%`,icon:Trophy}].map(s=>(
             <div key={s.label} className="bg-white/12 backdrop-blur rounded-2xl p-3">
               <s.icon size={14} className="opacity-80"/>
               <p className="text-lg font-extrabold mt-1.5 leading-none">{s.value}</p>
@@ -1415,64 +1439,99 @@ function ProgressScreen() {
       </motion.div>
 
       <StreakCard/>
-      <WeeklyActivity/>
 
-      {/* Score trend: smooth area chart */}
-      <div className="bg-card rounded-3xl p-5 shadow-sm border border-border">
-        <div className="flex items-center justify-between mb-4">
-          <p className="font-bold text-sm text-foreground">Score Trend</p>
-          <span className="text-[11px] font-semibold text-primary bg-secondary px-2.5 py-1 rounded-full flex items-center gap-1"><TrendingUp size={11}/> Improving</span>
-        </div>
-        <ResponsiveContainer width="100%" height={150}>
-          <AreaChart data={scoreHistory} margin={{top:5,right:5,left:-22,bottom:0}}>
-            <defs>
-              <linearGradient id="scoreFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35}/>
-                <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.02}/>
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="month" tick={{fontSize:11,fill:"var(--muted-foreground)"}} axisLine={false} tickLine={false}/>
-            <YAxis tick={{fontSize:11,fill:"var(--muted-foreground)"}} axisLine={false} tickLine={false} domain={[50,100]}/>
-            <Tooltip contentStyle={{borderRadius:12,border:"1px solid var(--border)",background:"var(--card)",color:"var(--foreground)",fontSize:12}}/>
-            <Area type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={2.5} fill="url(#scoreFill)"
-              dot={{fill:"var(--primary)",r:3.5,strokeWidth:0}} activeDot={{r:6,stroke:"var(--card)",strokeWidth:2}}/>
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+      {!has&&<EmptyProgress onBrowse={onBrowse}/>}
 
-      {/* Subject performance */}
-      <div>
-        <p className="font-bold text-sm text-foreground mb-3">Subject Performance</p>
-        <div className="bg-card rounded-3xl shadow-sm border border-border divide-y divide-border overflow-hidden">
-          {subjects.slice(0,5).map((s,i)=>(
-            <motion.div key={s.id} initial={{opacity:0,x:-10}} animate={{opacity:1,x:0}} transition={{delay:i*0.06}} className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0" style={{background:`${s.color}18`}}>{s.icon}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-center mb-1.5">
-                    <p className="text-sm font-semibold text-foreground">{s.name}</p>
-                    <span className="text-sm font-bold" style={{color:s.color}}>{s.completion}%</span>
-                  </div>
-                  <ProgressBar value={s.completion} color={s.color} height={6}/>
-                </div>
+      {has&&(
+        <>
+          {/* Questions answered */}
+          <div className="bg-card rounded-3xl p-5 shadow-sm border border-border">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-bold text-sm text-foreground">Questions answered</p>
+              <span className="text-xs font-semibold text-muted-foreground">{totalCorrect} / {totalQ} correct</span>
+            </div>
+            <ProgressBar value={accuracy} height={8}/>
+            <div className="flex gap-4 mt-3">
+              <span className="text-xs text-muted-foreground flex items-center gap-1.5"><CheckCircle size={13} className="text-emerald-500"/> {totalCorrect} correct</span>
+              <span className="text-xs text-muted-foreground flex items-center gap-1.5"><XCircle size={13} className="text-destructive"/> {totalQ-totalCorrect} wrong</span>
+            </div>
+          </div>
+
+          {/* Score trend from real attempts */}
+          {trend.length>=2&&(
+            <div className="bg-card rounded-3xl p-5 shadow-sm border border-border">
+              <div className="flex items-center justify-between mb-4">
+                <p className="font-bold text-sm text-foreground">Score Trend</p>
+                <span className="text-[11px] font-semibold text-primary bg-secondary px-2.5 py-1 rounded-full flex items-center gap-1">
+                  <TrendingUp size={11}/> Last {trend.length} exams
+                </span>
               </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
+              <ResponsiveContainer width="100%" height={150}>
+                <AreaChart data={trend} margin={{top:5,right:5,left:-22,bottom:0}}>
+                  <defs>
+                    <linearGradient id="scoreFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35}/>
+                      <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.02}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="label" tick={{fontSize:11,fill:"var(--muted-foreground)"}} axisLine={false} tickLine={false}/>
+                  <YAxis tick={{fontSize:11,fill:"var(--muted-foreground)"}} axisLine={false} tickLine={false} domain={[0,100]}/>
+                  <Tooltip formatter={(v:any)=>[`${v}%`,"Score"]} contentStyle={{borderRadius:12,border:"1px solid var(--border)",background:"var(--card)",color:"var(--foreground)",fontSize:12}}/>
+                  <Area type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={2.5} fill="url(#scoreFill)"
+                    dot={{fill:"var(--primary)",r:3.5,strokeWidth:0}} activeDot={{r:6,stroke:"var(--card)",strokeWidth:2}}/>
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
 
-      {/* Achievements */}
+          <WeeklyActivity/>
+
+          {/* Real subject performance */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-bold text-sm text-foreground">Subject Performance</p>
+              <span className="text-[11px] font-semibold text-muted-foreground">{subjectRows.length} subject{subjectRows.length===1?"":"s"}</span>
+            </div>
+            <div className="bg-card rounded-3xl shadow-sm border border-border divide-y divide-border overflow-hidden">
+              {subjectRows.map((r,i)=>{
+                const s=subjects.find(x=>x.id===r.subjectId);
+                const color=s?.color??"#6c3fcf";
+                return (
+                  <motion.div key={r.subjectId} initial={{opacity:0,x:-10}} animate={{opacity:1,x:0}} transition={{delay:i*0.06}} className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0" style={{background:`${color}18`}}>{s?.icon??"📘"}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-1.5">
+                          <p className="text-sm font-semibold text-foreground truncate">{r.subjectName}</p>
+                          <span className="text-sm font-bold" style={{color}}>{r.avg}%</span>
+                        </div>
+                        <ProgressBar value={r.avg} color={color} height={6}/>
+                        <p className="text-[11px] text-muted-foreground mt-1.5">{r.attempts} exam{r.attempts===1?"":"s"} · best {r.best}% · last {r.last}%</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Achievements (real) */}
       <div>
-        <p className="font-bold text-sm text-foreground mb-3">Achievements</p>
+        <div className="flex items-center justify-between mb-3">
+          <p className="font-bold text-sm text-foreground">Achievements</p>
+          <span className="text-[11px] font-semibold text-muted-foreground">{earned}/{achievements.length} earned</span>
+        </div>
         <div className="grid grid-cols-3 gap-3">
-          {achievementsList.map((a,i)=>(
-            <motion.div key={i} initial={{opacity:0,scale:0.9}} animate={{opacity:1,scale:1}} transition={{delay:i*0.07}}
-              className="bg-card rounded-2xl p-3.5 shadow-sm border border-border flex flex-col items-center gap-2 text-center" style={{opacity:a.earned?1:0.45}}>
+          {achievements.map((a,i)=>(
+            <motion.div key={a.label} initial={{opacity:0,scale:0.9}} animate={{opacity:1,scale:1}} transition={{delay:i*0.06}}
+              className="bg-card rounded-2xl p-3.5 shadow-sm border border-border flex flex-col items-center gap-2 text-center" style={{opacity:a.earned?1:0.5}}>
               <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl" style={{background:a.earned?"var(--secondary)":"var(--muted)"}}>{a.icon}</div>
               <p className="text-[11px] font-semibold text-foreground leading-tight">{a.label}</p>
               {a.earned
                 ? <span className="text-[9px] font-bold text-primary bg-secondary px-2 py-0.5 rounded-full uppercase tracking-wide">Earned</span>
-                : <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide">Locked</span>}
+                : <span className="text-[9px] font-medium text-muted-foreground leading-tight">{a.hint}</span>}
             </motion.div>
           ))}
         </div>
@@ -1480,6 +1539,7 @@ function ProgressScreen() {
     </div>
   );
 }
+
 
 // ─── Profile Screen ───────────────────────────────────────────────────────────
 
@@ -1660,7 +1720,7 @@ export default function App() {
               )}
               {screen.name==="progress"&&(
                 <motion.div key="progress" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <ProgressScreen/>
+                  <ProgressScreen onBrowse={()=>setScreen({name:"exams"})}/>
                 </motion.div>
               )}
               {screen.name==="profile"&&(
