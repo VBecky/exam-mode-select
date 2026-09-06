@@ -1171,12 +1171,7 @@ function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
           <ProgressBar value={60}/>
           <p className="text-xs text-muted-foreground mt-1.5">2 more to hit goal</p>
         </div>
-        <div className="bg-card rounded-2xl p-4 shadow-sm border border-border">
-          <div className="flex items-center gap-2 mb-2"><Flame size={16} className="text-orange-500"/><span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Streak</span></div>
-          <p className="text-2xl font-bold text-foreground">7 <span className="text-base font-medium text-muted-foreground">days</span></p>
-          <div className="flex gap-1 mt-1">{["M","T","W","T","F","S","S"].map((_,i)=><div key={i} className="flex-1 h-1.5 rounded-full" style={{background:"var(--primary)"}}/>)}</div>
-          <p className="text-xs text-muted-foreground mt-1.5">Personal best!</p>
-        </div>
+        <HomeStreakCard/>
       </div>
       <div>
         <h2 className="text-base font-bold text-foreground mb-3">Recent Exams</h2>
@@ -1313,6 +1308,27 @@ function StreakCard() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function HomeStreakCard() {
+  const [count,setCount]=useState(0);
+  const [week,setWeek]=useState<StreakDay[]>([]);
+  useEffect(()=>{setCount(getStreakCount());setWeek(getWeek());},[]);
+  return (
+    <div className="bg-card rounded-2xl p-4 shadow-sm border border-border">
+      <div className="flex items-center gap-2 mb-2"><Flame size={16} className="text-orange-500"/><span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Streak</span></div>
+      <p className="text-2xl font-bold text-foreground">{count} <span className="text-base font-medium text-muted-foreground">day{count===1?"":"s"}</span></p>
+      <div className="flex gap-1 mt-1">
+        {week.map((d,i)=>(
+          <div key={i} className="flex-1 h-1.5 rounded-full"
+            style={{background:d.active?"var(--primary)":d.isToday?"color-mix(in oklab, var(--primary) 35%, transparent)":"var(--muted)"}}/>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground mt-1.5">
+        {count>=7?"Personal best! 🔥":count>0?"Keep it going!":"Study today to start!"}
+      </p>
     </div>
   );
 }
