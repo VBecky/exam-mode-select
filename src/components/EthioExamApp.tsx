@@ -1312,6 +1312,27 @@ function StreakCard() {
   );
 }
 
+function HomeStreakCard() {
+  const [count,setCount]=useState(0);
+  const [week,setWeek]=useState<StreakDay[]>([]);
+  useEffect(()=>{setCount(getStreakCount());setWeek(getWeek());},[]);
+  return (
+    <div className="bg-card rounded-2xl p-4 shadow-sm border border-border">
+      <div className="flex items-center gap-2 mb-2"><Flame size={16} className="text-orange-500"/><span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Streak</span></div>
+      <p className="text-2xl font-bold text-foreground">{count} <span className="text-base font-medium text-muted-foreground">day{count===1?"":"s"}</span></p>
+      <div className="flex gap-1 mt-1">
+        {week.map((d,i)=>(
+          <div key={i} className="flex-1 h-1.5 rounded-full"
+            style={{background:d.active?"var(--primary)":d.isToday?"color-mix(in oklab, var(--primary) 35%, transparent)":"var(--muted)"}}/>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground mt-1.5">
+        {count>=7?"Personal best! 🔥":count>0?"Keep it going!":"Study today to start!"}
+      </p>
+    </div>
+  );
+}
+
 function StreakStat() {
   const [count,setCount]=useState(0);
   useEffect(()=>{setCount(getStreakCount());},[]);
