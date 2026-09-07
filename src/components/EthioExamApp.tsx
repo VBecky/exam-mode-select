@@ -1312,6 +1312,52 @@ function StreakCard() {
   );
 }
 
+function DailyGoalCard() {
+  const [goal,setGoal]=useState(()=>getDailyGoal());
+  const [editing,setEditing]=useState(false);
+  const refresh=()=>setGoal(getDailyGoal());
+  useEffect(()=>{refresh();},[]);
+  const pct=Math.min(100,Math.round((goal.count/goal.goal)*100));
+  const step=(dir:1|-1)=>{
+    const i=GOAL_OPTIONS.indexOf(goal.goal);
+    const next=GOAL_OPTIONS[Math.min(GOAL_OPTIONS.length-1,Math.max(0,i+dir))];
+    setDailyGoal(next);
+    refresh();
+  };
+  return (
+    <div className="bg-card rounded-2xl p-4 shadow-sm border border-border">
+      <div className="flex items-center gap-2 mb-2">
+        <Target size={16} className="text-primary"/>
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Daily Goal</span>
+        <button onClick={()=>setEditing(e=>!e)} className="ml-auto text-muted-foreground active:scale-90" aria-label="Edit daily goal">
+          <Pencil size={13}/>
+        </button>
+      </div>
+      <p className="text-2xl font-bold text-foreground">
+        {goal.count} <span className="text-base font-medium text-muted-foreground">/ {goal.goal}</span>
+      </p>
+      <ProgressBar value={pct}/>
+      {editing?(
+        <div className="flex items-center justify-between mt-2">
+          <button onClick={()=>step(-1)} disabled={goal.goal===GOAL_OPTIONS[0]}
+            className="w-6 h-6 rounded-lg bg-muted flex items-center justify-center text-foreground disabled:opacity-30 active:scale-90" aria-label="Decrease goal">
+            <Minus size={13}/>
+          </button>
+          <span className="text-xs font-semibold text-muted-foreground">Goal: {goal.goal} questions</span>
+          <button onClick={()=>step(1)} disabled={goal.goal===GOAL_OPTIONS[GOAL_OPTIONS.length-1]}
+            className="w-6 h-6 rounded-lg bg-muted flex items-center justify-center text-foreground disabled:opacity-30 active:scale-90" aria-label="Increase goal">
+            <Plus size={13}/>
+          </button>
+        </div>
+      ):(
+        <p className="text-xs text-muted-foreground mt-1.5">
+          {goal.done?"Goal reached! 🎉":goal.count===0?"Answer questions to start":`${goal.remaining} more to hit goal`}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function HomeStreakCard() {
   const [count,setCount]=useState(0);
   const [week,setWeek]=useState<StreakDay[]>([]);
