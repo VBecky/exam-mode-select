@@ -1092,13 +1092,16 @@ type LastPaper = {
   questionsCount:number; mode:"practice"|"exam"; ts:number;
 };
 
-function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
+function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName,stream}:{
   onNavigate:(tab:string,subjectId?:number)=>void;
   onNotifications:()=>void;
   onContinue:(lp:LastPaper)=>void;
   lastPaper:LastPaper|null;
   userName:string;
+  stream:Stream;
 }) {
+  const quickStartIds=stream==="natural"?NATURAL_IDS:SOCIAL_IDS;
+  const quickStartSubjects=quickStartIds.map(id=>subjects.find(s=>s.id===id)!).filter(Boolean);
   const [recentExams,setRecentExams]=useState<RecentExam[]>([]);
   useEffect(()=>{setRecentExams(getRecentExams());},[]);
   const lpSubject=lastPaper?subjects.find(s=>s.id===lastPaper.subjectId):null;
