@@ -1092,13 +1092,16 @@ type LastPaper = {
   questionsCount:number; mode:"practice"|"exam"; ts:number;
 };
 
-function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
+function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName,stream}:{
   onNavigate:(tab:string,subjectId?:number)=>void;
   onNotifications:()=>void;
   onContinue:(lp:LastPaper)=>void;
   lastPaper:LastPaper|null;
   userName:string;
+  stream:Stream;
 }) {
+  const quickStartIds=stream==="natural"?NATURAL_IDS:SOCIAL_IDS;
+  const quickStartSubjects=quickStartIds.map(id=>subjects.find(s=>s.id===id)!).filter(Boolean);
   const [recentExams,setRecentExams]=useState<RecentExam[]>([]);
   useEffect(()=>{setRecentExams(getRecentExams());},[]);
   const lpSubject=lastPaper?subjects.find(s=>s.id===lastPaper.subjectId):null;
@@ -1154,7 +1157,7 @@ function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName}:{
           <button className="text-sm font-medium text-primary" onClick={()=>onNavigate("exams")}>See all</button>
         </div>
         <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-          {subjects.slice(0,6).map(s=>(
+          {quickStartSubjects.map(s=>(
             <motion.button key={s.id} whileTap={{scale:0.95}}
               className="flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-2xl bg-card shadow-sm border border-border w-[88px]"
               onClick={()=>onNavigate("exams",s.id)}>
@@ -1707,7 +1710,7 @@ export default function App() {
             <AnimatePresence initial={false} mode="popLayout">
               {screen.name==="home"&&(
                 <motion.div key="home" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <HomeScreen onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName} lastPaper={lastPaper} onContinue={(lp)=>{
+                  <HomeScreen stream={stream} onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName} lastPaper={lastPaper} onContinue={(lp)=>{
                     const s=subjects.find(x=>x.id===lp.subjectId);
                     if(!s){setScreen({name:"exams"});return;}
                     const questions=getPaperQuestions(s.id,lp.year,s.name,lp.questionsCount);
