@@ -1157,7 +1157,7 @@ function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName,st
           <button className="text-sm font-medium text-primary" onClick={()=>onNavigate("exams")}>See all</button>
         </div>
         <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-          {subjects.slice(0,6).map(s=>(
+          {quickStartSubjects.map(s=>(
             <motion.button key={s.id} whileTap={{scale:0.95}}
               className="flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-2xl bg-card shadow-sm border border-border w-[88px]"
               onClick={()=>onNavigate("exams",s.id)}>
