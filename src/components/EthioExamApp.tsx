@@ -8,12 +8,13 @@ import {
   Info, Settings, LogOut, ArrowLeft, Zap, TrendingUp, XCircle, RotateCcw,
   ListChecks, BookMarked, Bookmark, LayoutGrid, GraduationCap, X, Sun,
   Send, CheckCheck, AlertCircle, MessageSquare, ChevronLeft,
-  Pencil, Save,
+  Pencil, Save, Minus, Plus,
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
 import { recordStudyDay, getStreakCount, getWeek, getWeeks, type StreakDay, type WeekBlock } from "@/lib/streak";
 import { recordExamAttempt, getExamStats, getExamHistory, getSubjectProgress, getScoreTrend, getImprovement, getAchievements, type ExamStats, type ExamAttempt } from "@/lib/exam-history";
 import { recordRecentExam, updateRecentExamScore, getRecentExams, type RecentExam } from "@/lib/recent-exams";
+import { getDailyGoal, recordAnsweredQuestion, setDailyGoal, GOAL_OPTIONS } from "@/lib/daily-goal";
 import MathText from "@/components/MathText";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -468,6 +469,7 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
   },[]);
   const selectAnswer=(qId:number,oi:number)=>{
     if (mode==="practice"&&answers[qId]!==undefined) return;
+    if (answers[qId]===undefined) recordAnsweredQuestion();
     setAnswers(p=>({...p,[qId]:oi}));
   };
   const scrollToQ=(i:number)=>{questionRefs.current[i]?.scrollIntoView({behavior:"smooth",block:"start"});setNavOpen(false);};
@@ -1168,12 +1170,7 @@ function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName,st
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-card rounded-2xl p-4 shadow-sm border border-border">
-          <div className="flex items-center gap-2 mb-2"><Target size={16} className="text-primary"/><span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Daily Goal</span></div>
-          <p className="text-2xl font-bold text-foreground">3 <span className="text-base font-medium text-muted-foreground">/ 5</span></p>
-          <ProgressBar value={60}/>
-          <p className="text-xs text-muted-foreground mt-1.5">2 more to hit goal</p>
-        </div>
+        <DailyGoalCard/>
         <HomeStreakCard/>
       </div>
       <div>
