@@ -1094,10 +1094,11 @@ type LastPaper = {
   questionsCount:number; mode:"practice"|"exam"; ts:number;
 };
 
-function HomeScreen({onNavigate,onNotifications,onContinue,lastPaper,userName,stream}:{
+function HomeScreen({onNavigate,onNotifications,onContinue,onQuickStart,lastPaper,userName,stream}:{
   onNavigate:(tab:string,subjectId?:number)=>void;
   onNotifications:()=>void;
   onContinue:(lp:LastPaper)=>void;
+  onQuickStart:(subject:Subject)=>void;
   lastPaper:LastPaper|null;
   userName:string;
   stream:Stream;
