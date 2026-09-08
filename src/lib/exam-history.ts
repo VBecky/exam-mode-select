@@ -47,6 +47,18 @@ export function getExamStats(list: ExamAttempt[] = getExamHistory()): ExamStats 
 
 // ─── Derived analytics ────────────────────────────────────────────────────────
 
+/** Newest attempt per paper (subject + year), so retries don't inflate totals. */
+export function getLatestPerPaper(list: ExamAttempt[] = getExamHistory()): ExamAttempt[] {
+  const map = new Map<string, ExamAttempt>();
+  for (const a of list) {
+    const key = `${a.subjectId}|${a.year}`;
+    const prev = map.get(key);
+    if (!prev || a.ts > prev.ts) map.set(key, a);
+  }
+  return [...map.values()];
+}
+
+
 export type SubjectProgress = {
   subjectId: number;
   subjectName: string;
@@ -69,6 +81,7 @@ export function getSubjectProgress(list: ExamAttempt[] = getExamHistory()): Subj
   return [...map.entries()]
     .map(([subjectId, arr]) => {
       const sorted = [...arr].sort((x, y) => y.ts - x.ts);
+      const unique = getLatestPerPaper(sorted);
       return {
         subjectId,
         subjectName: sorted[0].subjectName,
@@ -76,8 +89,8 @@ export function getSubjectProgress(list: ExamAttempt[] = getExamHistory()): Subj
         avg: Math.round(sorted.reduce((s, a) => s + a.score, 0) / sorted.length),
         best: Math.max(...sorted.map((a) => a.score)),
         last: sorted[0].score,
-        correct: sorted.reduce((s, a) => s + a.correct, 0),
-        total: sorted.reduce((s, a) => s + a.total, 0),
+        correct: unique.reduce((s, a) => s + a.correct, 0),
+        total: unique.reduce((s, a) => s + a.total, 0),
       };
     })
     .sort((a, b) => b.avg - a.avg);

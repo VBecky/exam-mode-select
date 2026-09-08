@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
 import { recordStudyDay, getStreakCount, getWeek, getWeeks, type StreakDay, type WeekBlock } from "@/lib/streak";
-import { recordExamAttempt, getExamStats, getExamHistory, getSubjectProgress, getScoreTrend, getImprovement, getAchievements, type ExamStats, type ExamAttempt } from "@/lib/exam-history";
+import { recordExamAttempt, getExamStats, getExamHistory, getSubjectProgress, getScoreTrend, getImprovement, getAchievements, getLatestPerPaper, type ExamStats, type ExamAttempt } from "@/lib/exam-history";
 import { recordRecentExam, updateRecentExamScore, getRecentExams, type RecentExam } from "@/lib/recent-exams";
 import { getDailyGoal, recordAnsweredQuestion, setDailyGoal, GOAL_OPTIONS } from "@/lib/daily-goal";
 import MathText from "@/components/MathText";
@@ -1462,8 +1462,9 @@ function ProgressScreen({onBrowse}:{onBrowse:()=>void}) {
   const trend=getScoreTrend(8,history);
   const delta=getImprovement(history);
   const achievements=getAchievements(history,streak);
-  const totalQ=history.reduce((s,a)=>s+a.total,0);
-  const totalCorrect=history.reduce((s,a)=>s+a.correct,0);
+  const uniquePapers=getLatestPerPaper(history);
+  const totalQ=uniquePapers.reduce((s,a)=>s+a.total,0);
+  const totalCorrect=uniquePapers.reduce((s,a)=>s+a.correct,0);
   const accuracy=totalQ?Math.round((totalCorrect/totalQ)*100):0;
   const earned=achievements.filter(a=>a.earned).length;
 
@@ -1764,8 +1765,11 @@ export default function App() {
                     const paper=defaultPapers(s.id)[0];
                     const questions=getPaperQuestions(s.id,paper.year,s.name,paper.questions);
                     const seconds=Math.round((parseFloat((paper.duration.match(/([\d.]+)/)||["1"])[1])||1)*3600);
+                    recordStudyDay();
+                    recordRecentExam({subjectId:s.id,year:paper.year,duration:paper.duration,questionsCount:paper.questions,mode:"practice"});
                     openQuiz(s,questions,`${s.name} ${paper.year}`,"practice",seconds,"home");
                   }}/>
+
                 </motion.div>
               )}
               {screen.name==="exams"&&(
