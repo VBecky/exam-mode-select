@@ -47,6 +47,18 @@ export function getExamStats(list: ExamAttempt[] = getExamHistory()): ExamStats 
 
 // ─── Derived analytics ────────────────────────────────────────────────────────
 
+/** Newest attempt per paper (subject + year), so retries don't inflate totals. */
+export function getLatestPerPaper(list: ExamAttempt[] = getExamHistory()): ExamAttempt[] {
+  const map = new Map<string, ExamAttempt>();
+  for (const a of list) {
+    const key = `${a.subjectId}|${a.year}`;
+    const prev = map.get(key);
+    if (!prev || a.ts > prev.ts) map.set(key, a);
+  }
+  return [...map.values()];
+}
+
+
 export type SubjectProgress = {
   subjectId: number;
   subjectName: string;
