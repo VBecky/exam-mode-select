@@ -1732,8 +1732,8 @@ export default function App() {
     }
   };
 
-  const openQuiz=(subject:Subject,questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number)=>{
-    setScreen({name:"quiz",subject,questions,title,initialMode:mode,durationSeconds});
+  const openQuiz=(subject:Subject,questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number,from:"home"|"subjectDetails"="subjectDetails")=>{
+    setScreen({name:"quiz",subject,questions,title,initialMode:mode,durationSeconds,from});
   };
 
   const handleSaveSettings=(name:string,grade:string)=>{
