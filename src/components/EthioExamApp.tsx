@@ -1462,8 +1462,9 @@ function ProgressScreen({onBrowse}:{onBrowse:()=>void}) {
   const trend=getScoreTrend(8,history);
   const delta=getImprovement(history);
   const achievements=getAchievements(history,streak);
-  const totalQ=history.reduce((s,a)=>s+a.total,0);
-  const totalCorrect=history.reduce((s,a)=>s+a.correct,0);
+  const uniquePapers=getLatestPerPaper(history);
+  const totalQ=uniquePapers.reduce((s,a)=>s+a.total,0);
+  const totalCorrect=uniquePapers.reduce((s,a)=>s+a.correct,0);
   const accuracy=totalQ?Math.round((totalCorrect/totalQ)*100):0;
   const earned=achievements.filter(a=>a.earned).length;
 
