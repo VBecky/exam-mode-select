@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
 import { recordStudyDay, getStreakCount, getWeek, getWeeks, type StreakDay, type WeekBlock } from "@/lib/streak";
-import { recordExamAttempt, getExamStats, getExamHistory, getSubjectProgress, getScoreTrend, getImprovement, getAchievements, type ExamStats, type ExamAttempt } from "@/lib/exam-history";
+import { recordExamAttempt, getExamStats, getExamHistory, getSubjectProgress, getScoreTrend, getImprovement, getAchievements, getLatestPerPaper, type ExamStats, type ExamAttempt } from "@/lib/exam-history";
 import { recordRecentExam, updateRecentExamScore, getRecentExams, type RecentExam } from "@/lib/recent-exams";
 import { getDailyGoal, recordAnsweredQuestion, setDailyGoal, GOAL_OPTIONS } from "@/lib/daily-goal";
 import MathText from "@/components/MathText";
