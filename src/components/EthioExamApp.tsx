@@ -1163,7 +1163,7 @@ function HomeScreen({onNavigate,onNotifications,onContinue,onQuickStart,lastPape
           {quickStartSubjects.map(s=>(
             <motion.button key={s.id} whileTap={{scale:0.95}}
               className="flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-2xl bg-card shadow-sm border border-border w-[88px]"
-              onClick={()=>onNavigate("exams",s.id)}>
+              onClick={()=>onQuickStart(s)}>
               <span className="text-2xl">{s.icon}</span>
               <span className="text-xs font-semibold text-foreground text-center leading-tight">{s.name}</span>
             </motion.button>
