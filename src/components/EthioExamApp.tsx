@@ -31,7 +31,7 @@ type Screen =
   | { name: "home" }
   | { name: "exams" }
   | { name: "subjectDetails"; subject: Subject }
-  | { name: "quiz"; subject: Subject; questions: Question[]; title: string; initialMode: "practice" | "exam"; durationSeconds?: number }
+  | { name: "quiz"; subject: Subject; questions: Question[]; title: string; initialMode: "practice" | "exam"; durationSeconds?: number; from?: "home" | "subjectDetails" }
   | { name: "progress" }
   | { name: "profile" }
   | { name: "notifications"; from: "home" | "profile" }
