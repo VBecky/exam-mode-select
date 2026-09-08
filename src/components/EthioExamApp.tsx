@@ -1759,7 +1759,12 @@ export default function App() {
                     if(!s){setScreen({name:"exams"});return;}
                     const questions=getPaperQuestions(s.id,lp.year,s.name,lp.questionsCount);
                     const seconds=lp.mode==="exam"?Math.round((parseFloat((lp.duration.match(/([\d.]+)/)||["1"])[1])||1)*3600):undefined;
-                    openQuiz(s,questions,`${s.name} ${lp.year}`,lp.mode,seconds);
+                    openQuiz(s,questions,`${s.name} ${lp.year}`,lp.mode,seconds,"home");
+                  }} onQuickStart={(s)=>{
+                    const paper=defaultPapers(s.id)[0];
+                    const questions=getPaperQuestions(s.id,paper.year,s.name,paper.questions);
+                    const seconds=Math.round((parseFloat((paper.duration.match(/([\d.]+)/)||["1"])[1])||1)*3600);
+                    openQuiz(s,questions,`${s.name} ${paper.year}`,"practice",seconds,"home");
                   }}/>
                 </motion.div>
               )}
@@ -1771,14 +1776,14 @@ export default function App() {
               {screen.name==="subjectDetails"&&(
                 <motion.div key="subjectDetails" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <SubjectDetails subject={screen.subject} onBack={()=>setScreen({name:"exams"})}
-                    onOpenQuiz={(q,t,m,d)=>openQuiz(screen.subject,q,t,m,d)}/>
+                    onOpenQuiz={(q,t,m,d)=>openQuiz(screen.subject,q,t,m,d,"subjectDetails")}/>
                 </motion.div>
               )}
               {screen.name==="quiz"&&(
                 <motion.div key="quiz" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <QuizScreen questions={screen.questions} subject={screen.subject} title={screen.title}
                     initialMode={screen.initialMode} durationSeconds={screen.durationSeconds}
-                    onBack={()=>setScreen({name:"subjectDetails",subject:screen.subject})}/>
+                    onBack={()=>setScreen(screen.from==="home"?{name:"home"}:{name:"subjectDetails",subject:screen.subject})}/>
                 </motion.div>
               )}
               {screen.name==="progress"&&(
