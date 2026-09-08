@@ -1765,8 +1765,11 @@ export default function App() {
                     const paper=defaultPapers(s.id)[0];
                     const questions=getPaperQuestions(s.id,paper.year,s.name,paper.questions);
                     const seconds=Math.round((parseFloat((paper.duration.match(/([\d.]+)/)||["1"])[1])||1)*3600);
+                    recordStudyDay();
+                    recordRecentExam({subjectId:s.id,year:paper.year,duration:paper.duration,questionsCount:paper.questions,mode:"practice"});
                     openQuiz(s,questions,`${s.name} ${paper.year}`,"practice",seconds,"home");
                   }}/>
+
                 </motion.div>
               )}
               {screen.name==="exams"&&(
