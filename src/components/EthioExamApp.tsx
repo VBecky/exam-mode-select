@@ -1763,7 +1763,7 @@ export default function App() {
                     const questions=getPaperQuestions(s.id,lp.year,s.name,lp.questionsCount);
                     const seconds=lp.mode==="exam"?Math.round((parseFloat((lp.duration.match(/([\d.]+)/)||["1"])[1])||1)*3600):undefined;
                     openQuiz(s,questions,`${s.name} ${lp.year}`,lp.mode,seconds,"home");
-                  }} onQuickStart={(s)=>setScreen({name:"subjectDetails",subject:s})/>
+                  }} onQuickStart={(s)=>setScreen({name:"subjectDetails",subject:s})}/>
 
                 </motion.div>
               )}
