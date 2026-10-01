@@ -1121,7 +1121,7 @@ function HomeScreen({onNavigate,onNotifications,onContinue,onQuickStart,lastPape
     <div className="flex flex-col gap-5 pb-6">
       <div className="flex items-start justify-between pt-2">
         <div>
-          <p className="text-sm text-muted-foreground font-medium">Good morning 👋</p>
+          <p className="text-sm text-muted-foreground font-medium">{(()=>{const h=new Date().getHours();return h<12?"Good Morning ☀️":h<17?"Good Afternoon 🌤️":"Good Evening 🌙";})()}</p>
           <h1 className="text-2xl font-bold text-foreground">{userName}</h1>
         </div>
         <button onClick={onNotifications} className="relative w-10 h-10 rounded-2xl bg-card flex items-center justify-center shadow-sm border border-border">
@@ -1221,6 +1221,7 @@ function ExamsScreen({onSubjectSelect,stream}:{onSubjectSelect:(id:number)=>void
   const ids=stream==="natural"?NATURAL_IDS:SOCIAL_IDS;
   const streamSubjects=ids.map(id=>subjects.find(s=>s.id===id)!).filter(Boolean);
   const filtered=streamSubjects.filter(s=>s.name.toLowerCase().includes(search.toLowerCase()));
+  const doneYears=useMemo(()=>{const m=new Map<number,Set<string>>();for(const a of getExamHistory()){const set=m.get(a.subjectId)??new Set<string>();set.add(a.year);m.set(a.subjectId,set);}return m;},[]);
   return (
     <div className="flex flex-col gap-4 pb-6">
       <div className="pt-2">
@@ -1240,12 +1241,13 @@ function ExamsScreen({onSubjectSelect,stream}:{onSubjectSelect:(id:number)=>void
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style={{background:s.bg}}>{s.icon}</div>
             <div className="w-full">
               <p className="font-bold text-sm text-foreground">{s.name}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{s.papers} past papers</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{defaultPapers(s.id).length} past papers</p>
             </div>
+            {(()=>{const years=defaultPapers(s.id).map(p=>p.year);const done=years.filter(y=>doneYears.get(s.id)?.has(y)).length;const pct=years.length?Math.round(done/years.length*100):0;return(
             <div className="w-full">
-              <div className="flex justify-between text-xs mb-1"><span className="text-muted-foreground">Done</span><span className="font-semibold" style={{color:s.color}}>{s.completion}%</span></div>
-              <ProgressBar value={s.completion} color={s.color} height={3}/>
-            </div>
+              <div className="flex justify-between text-xs mb-1"><span className="text-muted-foreground">Done {done}/{years.length}</span><span className="font-semibold" style={{color:s.color}}>{pct}%</span></div>
+              <ProgressBar value={pct} color={s.color} height={3}/>
+            </div>);})()}
           </motion.button>
         ))}
       </div>
@@ -1761,14 +1763,7 @@ export default function App() {
                     const questions=getPaperQuestions(s.id,lp.year,s.name,lp.questionsCount);
                     const seconds=lp.mode==="exam"?Math.round((parseFloat((lp.duration.match(/([\d.]+)/)||["1"])[1])||1)*3600):undefined;
                     openQuiz(s,questions,`${s.name} ${lp.year}`,lp.mode,seconds,"home");
-                  }} onQuickStart={(s)=>{
-                    const paper=defaultPapers(s.id)[0];
-                    const questions=getPaperQuestions(s.id,paper.year,s.name,paper.questions);
-                    const seconds=Math.round((parseFloat((paper.duration.match(/([\d.]+)/)||["1"])[1])||1)*3600);
-                    recordStudyDay();
-                    recordRecentExam({subjectId:s.id,year:paper.year,duration:paper.duration,questionsCount:paper.questions,mode:"practice"});
-                    openQuiz(s,questions,`${s.name} ${paper.year}`,"practice",seconds,"home");
-                  }}/>
+                  }} onQuickStart={(s)=>setScreen({name:"subjectDetails",subject:s})/>
 
                 </motion.div>
               )}
