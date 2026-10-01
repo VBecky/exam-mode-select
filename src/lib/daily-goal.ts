@@ -2,7 +2,7 @@
 // Counts questions answered today and stores the user's target goal.
 
 const KEY = "dailyGoal";
-export const GOAL_OPTIONS = [5, 10, 15, 20, 30];
+export const GOAL_OPTIONS = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100];
 const DEFAULT_GOAL = 5;
 
 type DailyGoalState = {
