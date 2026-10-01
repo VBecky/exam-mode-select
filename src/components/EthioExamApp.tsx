@@ -30,7 +30,7 @@ type Stream = "natural" | "social";
 type Screen =
   | { name: "home" }
   | { name: "exams" }
-  | { name: "subjectDetails"; subject: Subject }
+  | { name: "subjectDetails"; subject: Subject; from?: "home" | "exams" }
   | { name: "quiz"; subject: Subject; questions: Question[]; title: string; initialMode: "practice" | "exam"; durationSeconds?: number; from?: "home" | "subjectDetails" }
   | { name: "progress" }
   | { name: "profile" }
@@ -1736,6 +1736,8 @@ export default function App() {
     }
   };
 
+  const detailsFromRef=useRef<"home"|"exams">("exams");
+  useEffect(()=>{if(screen.name==="subjectDetails")detailsFromRef.current=screen.from??"exams";},[screen]);
   const openQuiz=(subject:Subject,questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number,from:"home"|"subjectDetails"="subjectDetails")=>{
     setScreen({name:"quiz",subject,questions,title,initialMode:mode,durationSeconds,from});
   };
@@ -1763,7 +1765,7 @@ export default function App() {
                     const questions=getPaperQuestions(s.id,lp.year,s.name,lp.questionsCount);
                     const seconds=lp.mode==="exam"?Math.round((parseFloat((lp.duration.match(/([\d.]+)/)||["1"])[1])||1)*3600):undefined;
                     openQuiz(s,questions,`${s.name} ${lp.year}`,lp.mode,seconds,"home");
-                  }} onQuickStart={(s)=>setScreen({name:"subjectDetails",subject:s})}/>
+                  }} onQuickStart={(s)=>setScreen({name:"subjectDetails",subject:s,from:"home"})}/>
 
                 </motion.div>
               )}
@@ -1774,7 +1776,7 @@ export default function App() {
               )}
               {screen.name==="subjectDetails"&&(
                 <motion.div key="subjectDetails" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <SubjectDetails subject={screen.subject} onBack={()=>setScreen({name:"exams"})}
+                  <SubjectDetails subject={screen.subject} onBack={()=>setScreen(screen.from==="home"?{name:"home"}:{name:"exams"})}
                     onOpenQuiz={(q,t,m,d)=>openQuiz(screen.subject,q,t,m,d,"subjectDetails")}/>
                 </motion.div>
               )}
@@ -1782,7 +1784,7 @@ export default function App() {
                 <motion.div key="quiz" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <QuizScreen questions={screen.questions} subject={screen.subject} title={screen.title}
                     initialMode={screen.initialMode} durationSeconds={screen.durationSeconds}
-                    onBack={()=>setScreen(screen.from==="home"?{name:"home"}:{name:"subjectDetails",subject:screen.subject})}/>
+                    onBack={()=>setScreen(screen.from==="home"?{name:"home"}:{name:"subjectDetails",subject:screen.subject,from:detailsFromRef.current})}/>
                 </motion.div>
               )}
               {screen.name==="progress"&&(
