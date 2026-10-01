@@ -1736,6 +1736,8 @@ export default function App() {
     }
   };
 
+  const detailsFromRef=useRef<"home"|"exams">("exams");
+  useEffect(()=>{if(screen.name==="subjectDetails")detailsFromRef.current=screen.from??"exams";},[screen]);
   const openQuiz=(subject:Subject,questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number,from:"home"|"subjectDetails"="subjectDetails")=>{
     setScreen({name:"quiz",subject,questions,title,initialMode:mode,durationSeconds,from});
   };
@@ -1782,7 +1784,7 @@ export default function App() {
                 <motion.div key="quiz" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <QuizScreen questions={screen.questions} subject={screen.subject} title={screen.title}
                     initialMode={screen.initialMode} durationSeconds={screen.durationSeconds}
-                    onBack={()=>setScreen(screen.from==="home"?{name:"home"}:{name:"subjectDetails",subject:screen.subject})}/>
+                    onBack={()=>setScreen(screen.from==="home"?{name:"home"}:{name:"subjectDetails",subject:screen.subject,from:detailsFromRef.current})}/>
                 </motion.div>
               )}
               {screen.name==="progress"&&(
