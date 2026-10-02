@@ -1,21 +1,22 @@
 import { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
   Home, BookOpen, BarChart2, User, Bell, Search, ChevronRight, ChevronDown,
   Play, Clock, CheckCircle, Star, Flame, Target, Trophy, Moon, HelpCircle,
   Info, Settings, LogOut, ArrowLeft, Zap, TrendingUp, XCircle, RotateCcw,
   ListChecks, BookMarked, Bookmark, LayoutGrid, GraduationCap, X, Sun,
   Send, CheckCheck, AlertCircle, MessageSquare, ChevronLeft,
-  Pencil, Save, Minus, Plus,
+  Pencil, Save, Minus, Plus, CalendarDays,
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
-import { recordStudyDay, getStreakCount, getWeek, getWeeks, type StreakDay, type WeekBlock } from "@/lib/streak";
+import { recordStudyDay, getStreakCount, getStudyDays, getWeek, type StreakDay } from "@/lib/streak";
 import { recordExamAttempt, getExamStats, getExamHistory, getSubjectProgress, getScoreTrend, getImprovement, getAchievements, getLatestPerPaper, type ExamStats, type ExamAttempt } from "@/lib/exam-history";
 import { recordRecentExam, updateRecentExamScore, getRecentExams, type RecentExam } from "@/lib/recent-exams";
 import { getDailyGoal, recordAnsweredQuestion, setDailyGoal, GOAL_OPTIONS } from "@/lib/daily-goal";
 import MathText from "@/components/MathText";
+import { Button } from "@/components/ui/button";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1257,61 +1258,113 @@ function ExamsScreen({onSubjectSelect,stream}:{onSubjectSelect:(id:number)=>void
 
 // ─── Progress Screen ──────────────────────────────────────────────────────────
 
-function StreakCard() {
-  const [weeks,setWeeks]=useState<WeekBlock[]>([]);
-  const [count,setCount]=useState(0);
-  const scroller=useRef<HTMLDivElement|null>(null);
-  useEffect(()=>{setWeeks(getWeeks(8));setCount(getStreakCount());},[]);
-  // Start scrolled to the current week (right-most)
-  useLayoutEffect(()=>{
-    if(weeks.length&&scroller.current) scroller.current.scrollLeft=scroller.current.scrollWidth;
-  },[weeks.length]);
-  const current=weeks[weeks.length-1];
-  const doneThisWeek=current?current.days.filter(d=>d.active).length:0;
+function localDateKey(date:Date) {
+  const year=date.getFullYear();
+  const month=String(date.getMonth()+1).padStart(2,"0");
+  const day=String(date.getDate()).padStart(2,"0");
+  return `${year}-${month}-${day}`;
+}
+
+function ActivityCalendar({history}:{history:ExamAttempt[]}) {
+  const today=useMemo(()=>new Date(),[]);
+  const [month,setMonth]=useState(()=>new Date(today.getFullYear(),today.getMonth(),1));
+  const [selectedKey,setSelectedKey]=useState(()=>localDateKey(today));
+  const studyDays=useMemo(()=>new Set(getStudyDays()),[]);
+  const attemptsByDay=useMemo(()=>{
+    const grouped=new Map<string,ExamAttempt[]>();
+    history.forEach(attempt=>{
+      const key=localDateKey(new Date(attempt.ts));
+      grouped.set(key,[...(grouped.get(key)??[]),attempt]);
+    });
+    return grouped;
+  },[history]);
+  const firstDay=new Date(month.getFullYear(),month.getMonth(),1);
+  const lastDay=new Date(month.getFullYear(),month.getMonth()+1,0);
+  const leading=(firstDay.getDay()+6)%7;
+  const cells=Array.from({length:leading+lastDay.getDate()},(_,index)=>index<leading?null:new Date(month.getFullYear(),month.getMonth(),index-leading+1));
+  while(cells.length%7!==0) cells.push(null);
+  const currentMonth=month.getFullYear()===today.getFullYear()&&month.getMonth()===today.getMonth();
+  const selectedAttempts=attemptsByDay.get(selectedKey)??[];
+  const selectedStudied=studyDays.has(selectedKey)||selectedAttempts.length>0;
+  const selectedDate=new Date(`${selectedKey}T12:00:00`);
+  const selectedQuestions=selectedAttempts.reduce((sum,item)=>sum+item.total,0);
+  const selectedAverage=selectedAttempts.length?Math.round(selectedAttempts.reduce((sum,item)=>sum+item.score,0)/selectedAttempts.length):0;
+  const studiedThisMonth=[...studyDays].filter(key=>key.startsWith(`${month.getFullYear()}-${String(month.getMonth()+1).padStart(2,"0")}`)).length;
+  const moveMonth=(offset:number)=>{
+    const next=new Date(month.getFullYear(),month.getMonth()+offset,1);
+    setMonth(next);
+    const isCurrent=next.getFullYear()===today.getFullYear()&&next.getMonth()===today.getMonth();
+    const day=isCurrent?today.getDate():1;
+    setSelectedKey(localDateKey(new Date(next.getFullYear(),next.getMonth(),day)));
+  };
+
   return (
-    <div className="bg-card rounded-3xl p-5 shadow-sm border border-border">
-      <div className="flex items-center gap-3">
-        <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-orange-500/12">
-          <Flame size={22} className="text-orange-500"/>
+    <motion.section initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm" aria-label="Study activity calendar">
+      <div className="p-5 pb-4">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2"><CalendarDays size={17} className="shrink-0 text-primary"/><h2 className="truncate text-sm font-bold text-foreground">Study activity</h2></div>
+            <p className="mt-1 text-xs font-medium text-muted-foreground">{month.toLocaleDateString(undefined,{month:"long",year:"numeric"})}</p>
+          </div>
+          <div className="flex shrink-0 gap-1.5">
+            <Button type="button" variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-muted text-muted-foreground" onClick={()=>moveMonth(-1)} aria-label="Previous month"><ChevronLeft size={18}/></Button>
+            <Button type="button" variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-muted text-muted-foreground" onClick={()=>moveMonth(1)} disabled={currentMonth} aria-label="Next month"><ChevronRight size={18}/></Button>
+          </div>
         </div>
-        <div className="flex-1">
-          <p className="text-xl font-extrabold text-foreground leading-none">{count} <span className="text-sm font-semibold text-muted-foreground">day{count===1?"":"s"} streak</span></p>
-          <p className="text-xs text-muted-foreground mt-1">{doneThisWeek}/7 days studied this week</p>
+
+        <div className="mt-4 grid grid-cols-2 gap-2.5">
+          <div className="rounded-2xl border border-border bg-secondary/60 p-3.5">
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">Current streak</p>
+            <p className="mt-1 text-2xl font-extrabold text-primary">{getStreakCount()} <span className="text-xs font-semibold text-muted-foreground">day{getStreakCount()===1?"":"s"}</span></p>
+          </div>
+          <div className="rounded-2xl border border-border bg-activity-soft p-3.5">
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">This month</p>
+            <p className="mt-1 text-2xl font-extrabold text-activity">{studiedThisMonth} <span className="text-xs font-semibold text-muted-foreground">studied</span></p>
+          </div>
         </div>
-        <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-2 py-1 rounded-full">Swipe ←</span>
       </div>
 
-      <div ref={scroller} className="mt-4 -mx-1 px-1 overflow-x-auto snap-x snap-mandatory" style={{scrollbarWidth:"none"}}>
-        <div className="flex gap-4">
-          {weeks.map(w=>(
-            <div key={w.offset} className="snap-end shrink-0" style={{width:"100%"}}>
-              <p className="text-[11px] font-semibold text-muted-foreground mb-2">{w.label}</p>
-              <div className="flex gap-1.5">
-                {w.days.map((d,i)=>(
-                  <div key={d.key} className="flex-1 flex flex-col items-center gap-1.5">
-                    <motion.div
-                      initial={{scale:0.6,opacity:0}} animate={{scale:1,opacity:1}}
-                      transition={{delay:i*0.045,type:"spring",stiffness:340,damping:20}}
-                      className="w-full aspect-square rounded-2xl flex items-center justify-center border"
-                      style={{
-                        background:d.active?"var(--primary)":"var(--muted)",
-                        borderColor:d.isToday?"var(--primary)":"transparent",
-                        borderWidth:d.isToday?2:1,
-                        opacity:d.isFuture&&!d.active?0.45:1,
-                      }}>
-                      {d.active
-                        ? <CheckCircle size={16} className="text-primary-foreground"/>
-                        : <span className="text-[11px] font-semibold text-muted-foreground">{d.isToday?"•":""}</span>}
-                    </motion.div>
-                    <span className={`text-[11px] ${d.isToday?"font-bold text-primary":"font-medium text-muted-foreground"}`}>{d.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+      <div className="px-4 pb-4">
+        <div className="grid grid-cols-7 pb-1">
+          {["M","T","W","T","F","S","S"].map((label,index)=><span key={`${label}-${index}`} className="text-center text-[10px] font-bold text-muted-foreground">{label}</span>)}
+        </div>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div key={`${month.getFullYear()}-${month.getMonth()}`} initial={{opacity:0,x:8}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-8}} transition={{duration:0.16}} className="grid grid-cols-7 gap-1">
+            {cells.map((date,index)=>{
+              if(!date) return <span key={`empty-${index}`} className="aspect-square"/>;
+              const key=localDateKey(date);
+              const active=studyDays.has(key)||attemptsByDay.has(key);
+              const exams=attemptsByDay.get(key)?.length??0;
+              const isToday=key===localDateKey(today);
+              const selected=key===selectedKey;
+              const future=date.getTime()>today.getTime();
+              return (
+                <button type="button" key={key} disabled={future} onClick={()=>setSelectedKey(key)} aria-pressed={selected}
+                  aria-label={`${date.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}: ${active?"studied":"no study activity"}${exams?`, ${exams} exam${exams===1?"":"s"}`:""}`}
+                  className={`relative aspect-square min-h-10 rounded-xl text-xs font-semibold transition-transform active:scale-95 disabled:opacity-35 ${active?"bg-primary text-primary-foreground shadow-sm":"text-foreground"} ${selected?"ring-2 ring-primary ring-offset-2 ring-offset-card":""} ${isToday&&!active?"bg-secondary text-primary":""}`}>
+                  {date.getDate()}
+                  {exams>0&&<span className={`absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full ${active?"bg-primary-foreground":"bg-activity"}`}/>} 
+                </button>
+              );
+            })}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      <div className="border-t border-border bg-muted/60 px-5 py-4" aria-live="polite">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
+          <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${selectedStudied?"bg-secondary text-primary":"bg-card text-muted-foreground"}`}>
+            {selectedStudied?<CheckCircle size={19}/>:<CalendarDays size={19}/>} 
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold text-foreground">{selectedDate.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})}</p>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+              {selectedAttempts.length?`${selectedAttempts.length} exam${selectedAttempts.length===1?"":"s"} · ${selectedQuestions} questions · ${selectedAverage}% average`:selectedStudied?"Study activity recorded":"No study activity recorded"}
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </motion.section>
   );
 }
 
@@ -1414,33 +1467,6 @@ function ScoreRing({value,size=120,stroke=10}:{value:number;size?:number;stroke?
   );
 }
 
-function WeeklyActivity() {
-  const [week,setWeek]=useState<StreakDay[]>([]);
-  useEffect(()=>{setWeek(getWeek());},[]);
-  const data=week.map(d=>({day:d.label,done:d.active?1:0,isToday:d.isToday,isFuture:d.isFuture}));
-  return (
-    <div className="bg-card rounded-3xl p-5 shadow-sm border border-border">
-      <div className="flex items-center justify-between mb-4">
-        <p className="font-bold text-sm text-foreground">Weekly Activity</p>
-        <span className="text-[11px] font-semibold text-muted-foreground bg-muted px-2.5 py-1 rounded-full">This week</span>
-      </div>
-      <ResponsiveContainer width="100%" height={110}>
-        <BarChart data={data} margin={{top:0,right:0,left:0,bottom:0}} barCategoryGap="28%">
-          <XAxis dataKey="day" tick={{fontSize:11,fill:"var(--muted-foreground)"}} axisLine={false} tickLine={false}/>
-          <YAxis hide domain={[0,1]}/>
-          <Tooltip cursor={{fill:"transparent"}} formatter={(v:any)=>[v?"Studied":"No activity",""]}
-            contentStyle={{borderRadius:12,border:"1px solid var(--border)",background:"var(--card)",color:"var(--foreground)",fontSize:12}}/>
-          <Bar dataKey="done" radius={[8,8,8,8]} minPointSize={8}>
-            {data.map((d,i)=>(
-              <Cell key={i} fill={d.done?"var(--primary)":"var(--muted)"} opacity={d.isFuture&&!d.done?0.5:1}/>
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
 function EmptyProgress({onBrowse}:{onBrowse:()=>void}) {
   return (
     <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}}
@@ -1504,7 +1530,7 @@ function ProgressScreen({onBrowse}:{onBrowse:()=>void}) {
         </div>
       </motion.div>
 
-      <StreakCard/>
+      <ActivityCalendar history={history}/>
 
       {!has&&<EmptyProgress onBrowse={onBrowse}/>}
 
@@ -1549,8 +1575,6 @@ function ProgressScreen({onBrowse}:{onBrowse:()=>void}) {
               </ResponsiveContainer>
             </div>
           )}
-
-          <WeeklyActivity/>
 
           {/* Real subject performance */}
           <div>
