@@ -8,7 +8,7 @@ import {
   Info, Settings, LogOut, ArrowLeft, Zap, TrendingUp, XCircle, RotateCcw,
   ListChecks, BookMarked, Bookmark, LayoutGrid, GraduationCap, X, Sun,
   Send, CheckCheck, AlertCircle, MessageSquare, ChevronLeft,
-  Pencil, Save, Minus, Plus, CalendarDays,
+  Pencil, Save, Minus, Plus, CalendarDays, Phone, Lock, Eye, EyeOff,
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
 import { recordStudyDay, getStreakCount, getStudyDays, getWeek, type StreakDay } from "@/lib/streak";
@@ -38,6 +38,7 @@ type Screen =
   | { name: "notifications"; from: "home" | "profile" }
   | { name: "helpSupport" }
   | { name: "settings" }
+  | { name: "accountSettings" }
   | { name: "about" };
 
 // ─── Subjects ─────────────────────────────────────────────────────────────────
