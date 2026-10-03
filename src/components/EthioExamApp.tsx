@@ -1876,6 +1876,9 @@ export default function App() {
   const handleSaveSettings=(name:string,grade:string)=>{
     setUserName(name);setUserGrade(grade);
   };
+  const handleSaveAccount=(name:string,phone:string,password:string,s:Stream)=>{
+    setUserName(name);setUserPhone(phone);setUserPassword(password);setStream(s);
+  };
 
   const wrapperBg=darkMode?"#0d0b18":"#e8e4f5";
 
@@ -1925,9 +1928,10 @@ export default function App() {
               )}
               {screen.name==="profile"&&(
                 <motion.div key="profile" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <ProfileScreen stream={stream} onStreamChange={setStream} darkMode={darkMode}
+                  <ProfileScreen stream={stream} darkMode={darkMode}
                     onDarkMode={setDarkMode} onNotifications={()=>setScreen({name:"notifications",from:"profile"})}
                     onHelpSupport={()=>setScreen({name:"helpSupport"})} onSettings={()=>setScreen({name:"settings"})}
+                    onAccountSettings={()=>setScreen({name:"accountSettings"})}
                     onAbout={()=>setScreen({name:"about"})}
                     userName={userName} userGrade={userGrade}/>
                 </motion.div>
