@@ -1829,6 +1829,8 @@ export default function App() {
   const [darkMode,setDarkMode]=useState(()=>{try{return localStorage.getItem("darkMode")==="true";}catch{return false;}});
   const [userName,setUserName]=useState(()=>{try{return localStorage.getItem("userName")||"Abebe Girma";}catch{return "Abebe Girma";}});
   const [userGrade,setUserGrade]=useState(()=>{try{return localStorage.getItem("userGrade")||"12";}catch{return "12";}});
+  const [userPhone,setUserPhone]=useState(()=>{try{return localStorage.getItem("userPhone")||"";}catch{return "";}});
+  const [userPassword,setUserPassword]=useState(()=>{try{return localStorage.getItem("userPassword")||"";}catch{return "";}});
   const [lastPaper,setLastPaper]=useState<LastPaper|null>(()=>{try{const s=localStorage.getItem("lastPaper");return s?JSON.parse(s):null;}catch{return null;}});
 
   
@@ -1848,11 +1850,13 @@ export default function App() {
   useEffect(()=>{try{localStorage.setItem("stream",stream);}catch{}},              [stream]);
   useEffect(()=>{try{localStorage.setItem("userName",userName);}catch{}},          [userName]);
   useEffect(()=>{try{localStorage.setItem("userGrade",userGrade);}catch{}},        [userGrade]);
+  useEffect(()=>{try{localStorage.setItem("userPhone",userPhone);}catch{}},        [userPhone]);
+  useEffect(()=>{try{localStorage.setItem("userPassword",userPassword);}catch{}},  [userPassword]);
 
   const inQuiz=screen.name==="quiz";
-  const hideNav=inQuiz||["subjectDetails","notifications","helpSupport","settings","about"].includes(screen.name);
+  const hideNav=inQuiz||["subjectDetails","notifications","helpSupport","settings","accountSettings","about"].includes(screen.name);
   const activeTab=["subjectDetails","quiz"].includes(screen.name)?"exams":
-    ["notifications","helpSupport","settings","about"].includes(screen.name)?"profile":screen.name;
+    ["notifications","helpSupport","settings","accountSettings","about"].includes(screen.name)?"profile":screen.name;
 
   const navigate=(tab:string,subjectId?:number)=>{
     if (tab==="exams"&&subjectId){
