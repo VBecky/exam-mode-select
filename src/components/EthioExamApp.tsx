@@ -1754,12 +1754,13 @@ function ProgressScreen({onBrowse}:{onBrowse:()=>void}) {
 
 // ─── Profile Screen ───────────────────────────────────────────────────────────
 
-function ProfileScreen({stream,onStreamChange,darkMode,onDarkMode,onNotifications,onHelpSupport,onSettings,onAbout,userName,userGrade}:{
-  stream:Stream;onStreamChange:(s:Stream)=>void;darkMode:boolean;onDarkMode:(v:boolean)=>void;
-  onNotifications:()=>void;onHelpSupport:()=>void;onSettings:()=>void;onAbout:()=>void;
+function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport,onSettings,onAccountSettings,onAbout,userName,userGrade}:{
+  stream:Stream;darkMode:boolean;onDarkMode:(v:boolean)=>void;
+  onNotifications:()=>void;onHelpSupport:()=>void;onSettings:()=>void;onAccountSettings:()=>void;onAbout:()=>void;
   userName:string;userGrade:string;
 }) {
   const menuItems=[
+    {icon:User,       label:"Account Settings",     sub:"Name, phone, password & stream", action:onAccountSettings},
     {icon:Bell,       label:"Notifications",       sub:"Push & email alerts",   action:onNotifications},
     {icon:Settings,   label:"Settings",             sub:"Name & grade",          action:onSettings},
     {icon:HelpCircle, label:"Help & Support",       sub:"FAQ & contact",         action:onHelpSupport},
