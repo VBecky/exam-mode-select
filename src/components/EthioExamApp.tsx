@@ -1951,6 +1951,11 @@ export default function App() {
                   <SettingsScreen onBack={()=>setScreen({name:"profile"})} initName={userName} initGrade={userGrade} onSave={handleSaveSettings}/>
                 </motion.div>
               )}
+              {screen.name==="accountSettings"&&(
+                <motion.div key="accountSettings" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
+                  <AccountSettingsScreen onBack={()=>setScreen({name:"profile"})} initName={userName} initPhone={userPhone} initPassword={userPassword} initStream={stream} onSave={handleSaveAccount}/>
+                </motion.div>
+              )}
               {screen.name==="about"&&(
                 <motion.div key="about" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <AboutScreen onBack={()=>setScreen({name:"profile"})}/>
