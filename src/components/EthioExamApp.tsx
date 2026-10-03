@@ -1787,25 +1787,6 @@ function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport
         ))}
       </div>
 
-      {/* Stream selector */}
-      <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
-        <div className="px-4 py-3.5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-secondary"><GraduationCap size={18} className="text-primary"/></div>
-            <div><p className="text-sm font-semibold text-foreground">Stream</p><p className="text-xs text-muted-foreground">Your subject track</p></div>
-          </div>
-          <div className="flex gap-2">
-            {(["natural","social"] as const).map(s=>(
-              <button key={s} onClick={()=>onStreamChange(s)}
-                className="flex-1 py-2.5 rounded-2xl text-sm font-semibold transition-all"
-                style={stream===s?{background:"var(--primary)",color:"#fff"}:{background:"var(--muted)",color:"var(--muted-foreground)"}}>
-                {s==="natural"?"🔬 Natural":"🌐 Social"}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Dark mode + menu */}
       <div className="bg-card rounded-2xl shadow-sm border border-border divide-y divide-border overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3.5">
