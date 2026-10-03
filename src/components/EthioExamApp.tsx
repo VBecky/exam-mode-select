@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
   Home, BookOpen, BarChart2, User, Bell, Search, ChevronRight, ChevronDown,
-  Play, Clock, CheckCircle, Star, Flame, Target, Trophy, Moon, HelpCircle,
-  Info, Settings, LogOut, ArrowLeft, Zap, TrendingUp, XCircle, RotateCcw,
+  Play, Clock, CheckCircle, Star, Flame, Target, Trophy, Moon,
+  LogOut, ArrowLeft, Zap, TrendingUp, XCircle, RotateCcw,
   ListChecks, BookMarked, Bookmark, LayoutGrid, GraduationCap, X, Sun,
   Send, CheckCheck, AlertCircle, MessageSquare, ChevronLeft,
   Pencil, Save, Minus, Plus, CalendarDays, Phone, Lock, Eye, EyeOff,
@@ -1760,9 +1760,9 @@ export default function App() {
   useEffect(()=>{try{localStorage.setItem("userPassword",userPassword);}catch{}},  [userPassword]);
 
   const inQuiz=screen.name==="quiz";
-  const hideNav=inQuiz||["subjectDetails","notifications","helpSupport","settings","accountSettings","about"].includes(screen.name);
+  const hideNav=inQuiz||["subjectDetails","notifications","helpSupport","accountSettings","about"].includes(screen.name);
   const activeTab=["subjectDetails","quiz"].includes(screen.name)?"exams":
-    ["notifications","helpSupport","settings","accountSettings","about"].includes(screen.name)?"profile":screen.name;
+    ["notifications","helpSupport","accountSettings","about"].includes(screen.name)?"profile":screen.name;
 
   const navigate=(tab:string,subjectId?:number)=>{
     if (tab==="exams"&&subjectId){
@@ -1779,9 +1779,6 @@ export default function App() {
     setScreen({name:"quiz",subject,questions,title,initialMode:mode,durationSeconds,from});
   };
 
-  const handleSaveSettings=(name:string,grade:string)=>{
-    setUserName(name);setUserGrade(grade);
-  };
   const handleSaveAccount=(name:string,phone:string,password:string,s:Stream)=>{
     setUserName(name);setUserPhone(phone);setUserPassword(password);setStream(s);
   };
@@ -1835,10 +1832,8 @@ export default function App() {
               {screen.name==="profile"&&(
                 <motion.div key="profile" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <ProfileScreen stream={stream} darkMode={darkMode}
-                    onDarkMode={setDarkMode} onNotifications={()=>setScreen({name:"notifications",from:"profile"})}
-                    onHelpSupport={()=>setScreen({name:"helpSupport"})} onSettings={()=>setScreen({name:"settings"})}
+                    onDarkMode={setDarkMode}
                     onAccountSettings={()=>setScreen({name:"accountSettings"})}
-                    onAbout={()=>setScreen({name:"about"})}
                     userName={userName} userGrade={userGrade}/>
                 </motion.div>
               )}
@@ -1850,11 +1845,6 @@ export default function App() {
               {screen.name==="helpSupport"&&(
                 <motion.div key="helpSupport" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <HelpSupportScreen onBack={()=>setScreen({name:"profile"})}/>
-                </motion.div>
-              )}
-              {screen.name==="settings"&&(
-                <motion.div key="settings" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <SettingsScreen onBack={()=>setScreen({name:"profile"})} initName={userName} initGrade={userGrade} onSave={handleSaveSettings}/>
                 </motion.div>
               )}
               {screen.name==="accountSettings"&&(
