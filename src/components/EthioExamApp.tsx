@@ -1754,12 +1754,13 @@ function ProgressScreen({onBrowse}:{onBrowse:()=>void}) {
 
 // ─── Profile Screen ───────────────────────────────────────────────────────────
 
-function ProfileScreen({stream,onStreamChange,darkMode,onDarkMode,onNotifications,onHelpSupport,onSettings,onAbout,userName,userGrade}:{
-  stream:Stream;onStreamChange:(s:Stream)=>void;darkMode:boolean;onDarkMode:(v:boolean)=>void;
-  onNotifications:()=>void;onHelpSupport:()=>void;onSettings:()=>void;onAbout:()=>void;
+function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport,onSettings,onAccountSettings,onAbout,userName,userGrade}:{
+  stream:Stream;darkMode:boolean;onDarkMode:(v:boolean)=>void;
+  onNotifications:()=>void;onHelpSupport:()=>void;onSettings:()=>void;onAccountSettings:()=>void;onAbout:()=>void;
   userName:string;userGrade:string;
 }) {
   const menuItems=[
+    {icon:User,       label:"Account Settings",     sub:"Name, phone, password & stream", action:onAccountSettings},
     {icon:Bell,       label:"Notifications",       sub:"Push & email alerts",   action:onNotifications},
     {icon:Settings,   label:"Settings",             sub:"Name & grade",          action:onSettings},
     {icon:HelpCircle, label:"Help & Support",       sub:"FAQ & contact",         action:onHelpSupport},
@@ -1784,25 +1785,6 @@ function ProfileScreen({stream,onStreamChange,darkMode,onDarkMode,onNotification
         {[{label:"Exams Done",value:String(stats.examsDone)},{label:"Avg Score",value:`${stats.avgScore}%`},{label:"Day Streak",value:`${streak} 🔥`}].map(s=>(
           <div key={s.label} className="bg-card rounded-2xl p-3 shadow-sm border border-border text-center"><p className="text-lg font-extrabold text-foreground">{s.value}</p><p className="text-xs text-muted-foreground mt-0.5">{s.label}</p></div>
         ))}
-      </div>
-
-      {/* Stream selector */}
-      <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
-        <div className="px-4 py-3.5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-secondary"><GraduationCap size={18} className="text-primary"/></div>
-            <div><p className="text-sm font-semibold text-foreground">Stream</p><p className="text-xs text-muted-foreground">Your subject track</p></div>
-          </div>
-          <div className="flex gap-2">
-            {(["natural","social"] as const).map(s=>(
-              <button key={s} onClick={()=>onStreamChange(s)}
-                className="flex-1 py-2.5 rounded-2xl text-sm font-semibold transition-all"
-                style={stream===s?{background:"var(--primary)",color:"#fff"}:{background:"var(--muted)",color:"var(--muted-foreground)"}}>
-                {s==="natural"?"🔬 Natural":"🌐 Social"}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Dark mode + menu */}
@@ -1847,6 +1829,8 @@ export default function App() {
   const [darkMode,setDarkMode]=useState(()=>{try{return localStorage.getItem("darkMode")==="true";}catch{return false;}});
   const [userName,setUserName]=useState(()=>{try{return localStorage.getItem("userName")||"Abebe Girma";}catch{return "Abebe Girma";}});
   const [userGrade,setUserGrade]=useState(()=>{try{return localStorage.getItem("userGrade")||"12";}catch{return "12";}});
+  const [userPhone,setUserPhone]=useState(()=>{try{return localStorage.getItem("userPhone")||"";}catch{return "";}});
+  const [userPassword,setUserPassword]=useState(()=>{try{return localStorage.getItem("userPassword")||"";}catch{return "";}});
   const [lastPaper,setLastPaper]=useState<LastPaper|null>(()=>{try{const s=localStorage.getItem("lastPaper");return s?JSON.parse(s):null;}catch{return null;}});
 
   
@@ -1866,11 +1850,13 @@ export default function App() {
   useEffect(()=>{try{localStorage.setItem("stream",stream);}catch{}},              [stream]);
   useEffect(()=>{try{localStorage.setItem("userName",userName);}catch{}},          [userName]);
   useEffect(()=>{try{localStorage.setItem("userGrade",userGrade);}catch{}},        [userGrade]);
+  useEffect(()=>{try{localStorage.setItem("userPhone",userPhone);}catch{}},        [userPhone]);
+  useEffect(()=>{try{localStorage.setItem("userPassword",userPassword);}catch{}},  [userPassword]);
 
   const inQuiz=screen.name==="quiz";
-  const hideNav=inQuiz||["subjectDetails","notifications","helpSupport","settings","about"].includes(screen.name);
+  const hideNav=inQuiz||["subjectDetails","notifications","helpSupport","settings","accountSettings","about"].includes(screen.name);
   const activeTab=["subjectDetails","quiz"].includes(screen.name)?"exams":
-    ["notifications","helpSupport","settings","about"].includes(screen.name)?"profile":screen.name;
+    ["notifications","helpSupport","settings","accountSettings","about"].includes(screen.name)?"profile":screen.name;
 
   const navigate=(tab:string,subjectId?:number)=>{
     if (tab==="exams"&&subjectId){
@@ -1889,6 +1875,9 @@ export default function App() {
 
   const handleSaveSettings=(name:string,grade:string)=>{
     setUserName(name);setUserGrade(grade);
+  };
+  const handleSaveAccount=(name:string,phone:string,password:string,s:Stream)=>{
+    setUserName(name);setUserPhone(phone);setUserPassword(password);setStream(s);
   };
 
   const wrapperBg=darkMode?"#0d0b18":"#e8e4f5";
@@ -1939,9 +1928,10 @@ export default function App() {
               )}
               {screen.name==="profile"&&(
                 <motion.div key="profile" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <ProfileScreen stream={stream} onStreamChange={setStream} darkMode={darkMode}
+                  <ProfileScreen stream={stream} darkMode={darkMode}
                     onDarkMode={setDarkMode} onNotifications={()=>setScreen({name:"notifications",from:"profile"})}
                     onHelpSupport={()=>setScreen({name:"helpSupport"})} onSettings={()=>setScreen({name:"settings"})}
+                    onAccountSettings={()=>setScreen({name:"accountSettings"})}
                     onAbout={()=>setScreen({name:"about"})}
                     userName={userName} userGrade={userGrade}/>
                 </motion.div>
@@ -1959,6 +1949,11 @@ export default function App() {
               {screen.name==="settings"&&(
                 <motion.div key="settings" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <SettingsScreen onBack={()=>setScreen({name:"profile"})} initName={userName} initGrade={userGrade} onSave={handleSaveSettings}/>
+                </motion.div>
+              )}
+              {screen.name==="accountSettings"&&(
+                <motion.div key="accountSettings" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
+                  <AccountSettingsScreen onBack={()=>setScreen({name:"profile"})} initName={userName} initPhone={userPhone} initPassword={userPassword} initStream={stream} onSave={handleSaveAccount}/>
                 </motion.div>
               )}
               {screen.name==="about"&&(
