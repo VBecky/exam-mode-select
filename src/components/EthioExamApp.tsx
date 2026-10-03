@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
   Home, BookOpen, BarChart2, User, Bell, Search, ChevronRight, ChevronDown,
-  Play, Clock, CheckCircle, Star, Flame, Target, Trophy, Moon, HelpCircle,
-  Info, Settings, LogOut, ArrowLeft, Zap, TrendingUp, XCircle, RotateCcw,
+  Play, Clock, CheckCircle, Star, Flame, Target, Trophy, Moon,
+  LogOut, ArrowLeft, Zap, TrendingUp, XCircle, RotateCcw,
   ListChecks, BookMarked, Bookmark, LayoutGrid, GraduationCap, X, Sun,
   Send, CheckCheck, AlertCircle, MessageSquare, ChevronLeft,
   Pencil, Save, Minus, Plus, CalendarDays, Phone, Lock, Eye, EyeOff,
@@ -37,7 +37,6 @@ type Screen =
   | { name: "profile" }
   | { name: "notifications"; from: "home" | "profile" }
   | { name: "helpSupport" }
-  | { name: "settings" }
   | { name: "accountSettings" }
   | { name: "about" };
 
@@ -1002,93 +1001,6 @@ function AboutScreen({onBack}:{onBack:()=>void}) {
   );
 }
 
-// ─── Settings Screen ──────────────────────────────────────────────────────────
-
-function SettingsScreen({onBack,initName,initGrade,onSave}:{
-  onBack:()=>void;initName:string;initGrade:string;
-  onSave:(name:string,grade:string)=>void;
-}) {
-  const [name,setName]=useState(initName);
-  const [grade,setGrade]=useState(initGrade);
-  const [errors,setErrors]=useState<{name?:string;grade?:string}>({});
-  const [saved,setSaved]=useState(false);
-
-  const validate=()=>{
-    const e:{name?:string;grade?:string}={};
-    if (!name.trim()) e.name="Name is required";
-    else if (name.trim().length<2) e.name="Name must be at least 2 characters";
-    if (!grade) e.grade="Please select your grade";
-    return e;
-  };
-
-  const handleSave=()=>{
-    const e=validate();
-    if (Object.keys(e).length>0){setErrors(e);return;}
-    setErrors({});
-    onSave(name.trim(),grade);
-    setSaved(true);
-    setTimeout(()=>setSaved(false),3000);
-  };
-
-  return (
-    <div className="flex flex-col gap-5 pb-6">
-      <div className="flex items-center gap-3 pt-2">
-        <button className="w-9 h-9 rounded-2xl bg-card border border-border flex items-center justify-center shadow-sm" onClick={onBack}>
-          <ArrowLeft size={18} className="text-foreground"/>
-        </button>
-        <div><h1 className="text-xl font-bold text-foreground">Settings</h1></div>
-      </div>
-
-      <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
-        <AnimatePresence>
-          {saved&&(
-            <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} exit={{opacity:0}} className="flex items-center gap-2 p-3 rounded-xl bg-green-50 border border-green-200">
-              <CheckCheck size={16} className="text-green-600 flex-shrink-0"/>
-              <p className="text-sm font-medium text-green-700">Changes saved successfully!</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Name */}
-        <div>
-          <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Full Name</label>
-          <div className="relative">
-            <Pencil size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-            <input value={name} onChange={e=>{setName(e.target.value);setErrors(p=>({...p,name:undefined}));}}
-              className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-muted border text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-              style={{borderColor:errors.name?"#ef4444":"var(--border)"}}
-              placeholder="Your full name"/>
-          </div>
-          {errors.name&&<p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={11}/>{errors.name}</p>}
-        </div>
-
-        {/* Grade */}
-        <div>
-          <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Grade Level</label>
-          <div className="grid grid-cols-4 gap-2">
-            {["9","10","11","12"].map(g=>(
-              <button key={g} onClick={()=>{setGrade(g);setErrors(p=>({...p,grade:undefined}));}}
-                className="py-2.5 rounded-xl text-sm font-bold border transition-all"
-                style={grade===g?{background:"var(--primary)",color:"#fff",borderColor:"var(--primary)"}:{background:"var(--muted)",color:"var(--muted-foreground)",borderColor:"var(--border)"}}>
-                Grade {g}
-              </button>
-            ))}
-          </div>
-          {errors.grade&&<p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={11}/>{errors.grade}</p>}
-        </div>
-
-        <button onClick={handleSave}
-          className="w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 active:scale-95 transition-transform"
-          style={{background:"var(--primary)"}}>
-          <Save size={16}/> Save Changes
-        </button>
-      </div>
-
-      <p className="text-xs text-muted-foreground text-center">Your information is stored locally on this device.</p>
-    </div>
-  );
-}
-
 // ─── Account Settings Screen ──────────────────────────────────────────────────
 
 function AccountSettingsScreen({onBack,initName,initPhone,initPassword,initStream,onSave}:{
@@ -1754,18 +1666,11 @@ function ProgressScreen({onBrowse}:{onBrowse:()=>void}) {
 
 // ─── Profile Screen ───────────────────────────────────────────────────────────
 
-function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport,onSettings,onAccountSettings,onAbout,userName,userGrade}:{
+function ProfileScreen({stream,darkMode,onDarkMode,onAccountSettings,userName,userGrade}:{
   stream:Stream;darkMode:boolean;onDarkMode:(v:boolean)=>void;
-  onNotifications:()=>void;onHelpSupport:()=>void;onSettings:()=>void;onAccountSettings:()=>void;onAbout:()=>void;
+  onAccountSettings:()=>void;
   userName:string;userGrade:string;
 }) {
-  const menuItems=[
-    {icon:User,       label:"Account Settings",     sub:"Name, phone, password & stream", action:onAccountSettings},
-    {icon:Bell,       label:"Notifications",       sub:"Push & email alerts",   action:onNotifications},
-    {icon:Settings,   label:"Settings",             sub:"Name & grade",          action:onSettings},
-    {icon:HelpCircle, label:"Help & Support",       sub:"FAQ & contact",         action:onHelpSupport},
-    {icon:Info,       label:"About EthioExam",  sub:"Version 2.1.0",         action:onAbout},
-  ];
   const [stats,setStats]=useState<ExamStats>({examsDone:0,avgScore:0,bestScore:0});
   const [streak,setStreak]=useState(0);
   useEffect(()=>{setStats(getExamStats());setStreak(getStreakCount());},[]);
@@ -1779,16 +1684,24 @@ function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport
         <div className="flex-1"><p className="text-lg font-bold text-foreground">{userName}</p><p className="text-sm text-muted-foreground">Grade {userGrade} · Addis Ababa</p>
           <div className="flex items-center gap-1.5 mt-1"><Star size={12} className="text-yellow-400 fill-yellow-400"/><span className="text-xs font-semibold text-foreground capitalize">{stream} Science</span></div>
         </div>
-        <button onClick={onSettings} className="text-sm font-semibold text-primary">Edit</button>
+        <button onClick={onAccountSettings} className="text-sm font-semibold text-primary">Edit</button>
       </div>
+
+      {/* Account Settings — standalone card, where the stream selector used to sit */}
+      <button onClick={onAccountSettings} className="w-full bg-card rounded-2xl shadow-sm border border-border flex items-center gap-3 px-4 py-4 active:bg-muted transition-colors text-left">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary"><User size={20} className="text-primary"/></div>
+        <div className="flex-1"><p className="text-sm font-semibold text-foreground">Account Settings</p><p className="text-xs text-muted-foreground">Name, phone, password & stream</p></div>
+        <ChevronRight size={16} className="text-muted-foreground"/>
+      </button>
+
       <div className="grid grid-cols-3 gap-2">
         {[{label:"Exams Done",value:String(stats.examsDone)},{label:"Avg Score",value:`${stats.avgScore}%`},{label:"Day Streak",value:`${streak} 🔥`}].map(s=>(
           <div key={s.label} className="bg-card rounded-2xl p-3 shadow-sm border border-border text-center"><p className="text-lg font-extrabold text-foreground">{s.value}</p><p className="text-xs text-muted-foreground mt-0.5">{s.label}</p></div>
         ))}
       </div>
 
-      {/* Dark mode + menu */}
-      <div className="bg-card rounded-2xl shadow-sm border border-border divide-y divide-border overflow-hidden">
+      {/* Dark mode */}
+      <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3.5">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-secondary">
             {darkMode?<Moon size={18} className="text-primary"/>:<Sun size={18} className="text-primary"/>}
@@ -1796,13 +1709,6 @@ function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport
           <div className="flex-1"><p className="text-sm font-semibold text-foreground">Dark Mode</p><p className="text-xs text-muted-foreground">Switch theme</p></div>
           <Toggle enabled={darkMode} onToggle={()=>onDarkMode(!darkMode)}/>
         </div>
-        {menuItems.map((item,i)=>(
-          <button key={i} onClick={item.action} className="w-full flex items-center gap-3 px-4 py-3.5 active:bg-muted transition-colors text-left">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-secondary"><item.icon size={18} className="text-primary"/></div>
-            <div className="flex-1"><p className="text-sm font-semibold text-foreground">{item.label}</p><p className="text-xs text-muted-foreground">{item.sub}</p></div>
-            <ChevronRight size={16} className="text-muted-foreground"/>
-          </button>
-        ))}
       </div>
 
       <button className="w-full py-3 rounded-2xl border border-red-300 flex items-center justify-center gap-2 text-red-500 font-semibold text-sm active:bg-red-50 transition-colors">
@@ -1854,9 +1760,9 @@ export default function App() {
   useEffect(()=>{try{localStorage.setItem("userPassword",userPassword);}catch{}},  [userPassword]);
 
   const inQuiz=screen.name==="quiz";
-  const hideNav=inQuiz||["subjectDetails","notifications","helpSupport","settings","accountSettings","about"].includes(screen.name);
+  const hideNav=inQuiz||["subjectDetails","notifications","helpSupport","accountSettings","about"].includes(screen.name);
   const activeTab=["subjectDetails","quiz"].includes(screen.name)?"exams":
-    ["notifications","helpSupport","settings","accountSettings","about"].includes(screen.name)?"profile":screen.name;
+    ["notifications","helpSupport","accountSettings","about"].includes(screen.name)?"profile":screen.name;
 
   const navigate=(tab:string,subjectId?:number)=>{
     if (tab==="exams"&&subjectId){
@@ -1873,9 +1779,6 @@ export default function App() {
     setScreen({name:"quiz",subject,questions,title,initialMode:mode,durationSeconds,from});
   };
 
-  const handleSaveSettings=(name:string,grade:string)=>{
-    setUserName(name);setUserGrade(grade);
-  };
   const handleSaveAccount=(name:string,phone:string,password:string,s:Stream)=>{
     setUserName(name);setUserPhone(phone);setUserPassword(password);setStream(s);
   };
@@ -1929,10 +1832,8 @@ export default function App() {
               {screen.name==="profile"&&(
                 <motion.div key="profile" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <ProfileScreen stream={stream} darkMode={darkMode}
-                    onDarkMode={setDarkMode} onNotifications={()=>setScreen({name:"notifications",from:"profile"})}
-                    onHelpSupport={()=>setScreen({name:"helpSupport"})} onSettings={()=>setScreen({name:"settings"})}
+                    onDarkMode={setDarkMode}
                     onAccountSettings={()=>setScreen({name:"accountSettings"})}
-                    onAbout={()=>setScreen({name:"about"})}
                     userName={userName} userGrade={userGrade}/>
                 </motion.div>
               )}
@@ -1944,11 +1845,6 @@ export default function App() {
               {screen.name==="helpSupport"&&(
                 <motion.div key="helpSupport" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <HelpSupportScreen onBack={()=>setScreen({name:"profile"})}/>
-                </motion.div>
-              )}
-              {screen.name==="settings"&&(
-                <motion.div key="settings" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <SettingsScreen onBack={()=>setScreen({name:"profile"})} initName={userName} initGrade={userGrade} onSave={handleSaveSettings}/>
                 </motion.div>
               )}
               {screen.name==="accountSettings"&&(
