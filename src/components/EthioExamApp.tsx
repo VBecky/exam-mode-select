@@ -748,7 +748,7 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
         </div>
         <div className="relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-          <input className="w-full pl-8 pr-3 py-2.5 rounded-2xl bg-card border border-border text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search year or topic…"/>
+          <input value={paperSearch} onChange={e=>setPaperSearch(e.target.value)} className="w-full pl-8 pr-3 py-2.5 rounded-2xl bg-card border border-border text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search year or topic…"/>
         </div>
         {/* Year chips — filter, not navigation */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
