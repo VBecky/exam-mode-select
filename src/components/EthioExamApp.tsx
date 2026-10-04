@@ -649,9 +649,14 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
   onOpenQuiz:(questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number)=>void;
 }) {
   const [selectedYear,setSelectedYear]=useState("All Years");
+  const [paperSearch,setPaperSearch]=useState("");
   const [sheetPaper,setSheetPaper]=useState<ReturnType<typeof defaultPapers>[0]|null>(null);
   const [container,setContainer]=useState<HTMLElement|null>(null);
   const papers=defaultPapers(subject.id);
+  const query=paperSearch.trim().toLowerCase();
+  const visiblePapers=query
+    ?papers.filter(p=>p.year.toLowerCase().includes(query)||subject.name.toLowerCase().includes(query)||`${subject.name} ${p.year}`.toLowerCase().includes(query))
+    :papers;
 
   useEffect(()=>{
     setContainer(document.getElementById("phone-container"));
@@ -743,7 +748,7 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
         </div>
         <div className="relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-          <input className="w-full pl-8 pr-3 py-2.5 rounded-2xl bg-card border border-border text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search year or topic…"/>
+          <input value={paperSearch} onChange={e=>setPaperSearch(e.target.value)} className="w-full pl-8 pr-3 py-2.5 rounded-2xl bg-card border border-border text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search year or topic…"/>
         </div>
         {/* Year chips — filter, not navigation */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -760,9 +765,15 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
           })}
         </div>
         <AnimatePresence mode="wait">
-          {selectedYear==="All Years"?(
+          {selectedYear==="All Years"||query?(
             <motion.div key="all" initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-6}} transition={{duration:0.2}} className="space-y-3">
-              {papers.map((p,i)=>(
+              {visiblePapers.length===0&&(
+                <div className="text-center py-10">
+                  <p className="text-sm font-semibold text-foreground">No papers found</p>
+                  <p className="text-xs text-muted-foreground mt-1">Try a different year or topic.</p>
+                </div>
+              )}
+              {visiblePapers.map((p,i)=>(
                 <motion.button key={i} whileTap={{scale:0.98}}
                   className="w-full bg-card rounded-2xl p-4 shadow-sm border border-border flex items-center gap-4 text-left"
                   onClick={()=>setSheetPaper(p)}>
