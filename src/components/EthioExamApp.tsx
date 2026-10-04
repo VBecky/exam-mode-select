@@ -7,7 +7,7 @@ import {
   Play, Clock, CheckCircle, Star, Flame, Target, Trophy, Moon,
   LogOut, ArrowLeft, Zap, TrendingUp, XCircle, RotateCcw,
   ListChecks, BookMarked, Bookmark, LayoutGrid, GraduationCap, X, Sun,
-  Send, CheckCheck, AlertCircle, MessageSquare, ChevronLeft,
+  Send, CheckCheck, AlertCircle, MessageSquare, ChevronLeft, HelpCircle, Info,
   Pencil, Save, Minus, Plus, CalendarDays, Phone, Lock, Eye, EyeOff,
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
@@ -1666,11 +1666,16 @@ function ProgressScreen({onBrowse}:{onBrowse:()=>void}) {
 
 // ─── Profile Screen ───────────────────────────────────────────────────────────
 
-function ProfileScreen({stream,darkMode,onDarkMode,onAccountSettings,userName,userGrade}:{
+function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport,onAccountSettings,onAbout,userName,userGrade}:{
   stream:Stream;darkMode:boolean;onDarkMode:(v:boolean)=>void;
-  onAccountSettings:()=>void;
+  onNotifications:()=>void;onHelpSupport:()=>void;onAccountSettings:()=>void;onAbout:()=>void;
   userName:string;userGrade:string;
 }) {
+  const menuItems=[
+    {icon:Bell,       label:"Notifications",  sub:"Push & email alerts", action:onNotifications},
+    {icon:HelpCircle, label:"Help & Support",  sub:"FAQ & contact",       action:onHelpSupport},
+    {icon:Info,       label:"About EthioExam", sub:"Version 2.1.0",       action:onAbout},
+  ];
   const [stats,setStats]=useState<ExamStats>({examsDone:0,avgScore:0,bestScore:0});
   const [streak,setStreak]=useState(0);
   useEffect(()=>{setStats(getExamStats());setStreak(getStreakCount());},[]);
@@ -1687,21 +1692,21 @@ function ProfileScreen({stream,darkMode,onDarkMode,onAccountSettings,userName,us
         <button onClick={onAccountSettings} className="text-sm font-semibold text-primary">Edit</button>
       </div>
 
-      {/* Account Settings — standalone card, where the stream selector used to sit */}
-      <button onClick={onAccountSettings} className="w-full bg-card rounded-2xl shadow-sm border border-border flex items-center gap-3 px-4 py-4 active:bg-muted transition-colors text-left">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary"><User size={20} className="text-primary"/></div>
-        <div className="flex-1"><p className="text-sm font-semibold text-foreground">Account Settings</p><p className="text-xs text-muted-foreground">Name, phone, password & stream</p></div>
-        <ChevronRight size={16} className="text-muted-foreground"/>
-      </button>
-
       <div className="grid grid-cols-3 gap-2">
         {[{label:"Exams Done",value:String(stats.examsDone)},{label:"Avg Score",value:`${stats.avgScore}%`},{label:"Day Streak",value:`${streak} 🔥`}].map(s=>(
           <div key={s.label} className="bg-card rounded-2xl p-3 shadow-sm border border-border text-center"><p className="text-lg font-extrabold text-foreground">{s.value}</p><p className="text-xs text-muted-foreground mt-0.5">{s.label}</p></div>
         ))}
       </div>
 
-      {/* Dark mode */}
-      <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+      {/* Account Settings — standalone below profile statistics */}
+      <button onClick={onAccountSettings} className="w-full bg-card rounded-2xl shadow-sm border border-border flex items-center gap-3 px-4 py-4 active:bg-muted transition-colors text-left">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary"><User size={20} className="text-primary"/></div>
+        <div className="flex-1"><p className="text-sm font-semibold text-foreground">Account Settings</p><p className="text-xs text-muted-foreground">Name, phone, password & stream</p></div>
+        <ChevronRight size={16} className="text-muted-foreground"/>
+      </button>
+
+      {/* Dark mode + original profile links */}
+      <div className="bg-card rounded-2xl shadow-sm border border-border divide-y divide-border overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3.5">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-secondary">
             {darkMode?<Moon size={18} className="text-primary"/>:<Sun size={18} className="text-primary"/>}
@@ -1709,6 +1714,13 @@ function ProfileScreen({stream,darkMode,onDarkMode,onAccountSettings,userName,us
           <div className="flex-1"><p className="text-sm font-semibold text-foreground">Dark Mode</p><p className="text-xs text-muted-foreground">Switch theme</p></div>
           <Toggle enabled={darkMode} onToggle={()=>onDarkMode(!darkMode)}/>
         </div>
+        {menuItems.map((item,i)=>(
+          <button key={i} onClick={item.action} className="w-full flex items-center gap-3 px-4 py-3.5 active:bg-muted transition-colors text-left">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-secondary"><item.icon size={18} className="text-primary"/></div>
+            <div className="flex-1"><p className="text-sm font-semibold text-foreground">{item.label}</p><p className="text-xs text-muted-foreground">{item.sub}</p></div>
+            <ChevronRight size={16} className="text-muted-foreground"/>
+          </button>
+        ))}
       </div>
 
       <button className="w-full py-3 rounded-2xl border border-red-300 flex items-center justify-center gap-2 text-red-500 font-semibold text-sm active:bg-red-50 transition-colors">
@@ -1833,7 +1845,10 @@ export default function App() {
                 <motion.div key="profile" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <ProfileScreen stream={stream} darkMode={darkMode}
                     onDarkMode={setDarkMode}
+                    onNotifications={()=>setScreen({name:"notifications",from:"profile"})}
+                    onHelpSupport={()=>setScreen({name:"helpSupport"})}
                     onAccountSettings={()=>setScreen({name:"accountSettings"})}
+                    onAbout={()=>setScreen({name:"about"})}
                     userName={userName} userGrade={userGrade}/>
                 </motion.div>
               )}
