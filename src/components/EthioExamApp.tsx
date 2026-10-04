@@ -765,9 +765,15 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
           })}
         </div>
         <AnimatePresence mode="wait">
-          {selectedYear==="All Years"?(
+          {selectedYear==="All Years"||query?(
             <motion.div key="all" initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-6}} transition={{duration:0.2}} className="space-y-3">
-              {papers.map((p,i)=>(
+              {visiblePapers.length===0&&(
+                <div className="text-center py-10">
+                  <p className="text-sm font-semibold text-foreground">No papers found</p>
+                  <p className="text-xs text-muted-foreground mt-1">Try a different year or topic.</p>
+                </div>
+              )}
+              {visiblePapers.map((p,i)=>(
                 <motion.button key={i} whileTap={{scale:0.98}}
                   className="w-full bg-card rounded-2xl p-4 shadow-sm border border-border flex items-center gap-4 text-left"
                   onClick={()=>setSheetPaper(p)}>
