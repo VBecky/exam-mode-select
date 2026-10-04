@@ -649,9 +649,14 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
   onOpenQuiz:(questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number)=>void;
 }) {
   const [selectedYear,setSelectedYear]=useState("All Years");
+  const [paperSearch,setPaperSearch]=useState("");
   const [sheetPaper,setSheetPaper]=useState<ReturnType<typeof defaultPapers>[0]|null>(null);
   const [container,setContainer]=useState<HTMLElement|null>(null);
   const papers=defaultPapers(subject.id);
+  const query=paperSearch.trim().toLowerCase();
+  const visiblePapers=query
+    ?papers.filter(p=>p.year.toLowerCase().includes(query)||subject.name.toLowerCase().includes(query)||`${subject.name} ${p.year}`.toLowerCase().includes(query))
+    :papers;
 
   useEffect(()=>{
     setContainer(document.getElementById("phone-container"));
