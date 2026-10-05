@@ -11,6 +11,7 @@ import {
   Pencil, Save, Minus, Plus, CalendarDays, Phone, Lock, Eye, EyeOff,
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
+import { groupPaperByUnits } from "@/lib/curriculum-units";
 import { recordStudyDay, getStreakCount, getStudyDays, getWeek, type StreakDay } from "@/lib/streak";
 import { recordExamAttempt, getExamStats, getExamHistory, getSubjectProgress, getScoreTrend, getImprovement, getAchievements, getLatestPerPaper, type ExamStats, type ExamAttempt } from "@/lib/exam-history";
 import { recordRecentExam, updateRecentExamScore, getRecentExams, type RecentExam } from "@/lib/recent-exams";
@@ -94,99 +95,6 @@ const FULL_PAPER_QUESTIONS: Question[] = [
     explanation:"m=(9−3)/(5−2)=6/3=2." },
 ];
 
-// ─── Unit Question Bank ───────────────────────────────────────────────────────
-
-const QUESTION_BANK: Record<string, Omit<Question, "id">[]> = {
-  "12-1":[
-    {text:"Derivative of f(x)=x³+2x:",options:["3x²+2","3x²","x²+2","3x+2"],answer:0,explanation:"Power rule: d/dx(x³)=3x², d/dx(2x)=2."},
-    {text:"lim x→2 (x²−4)/(x−2):",options:["4","2","0","Undefined"],answer:0,explanation:"Factor: (x²−4)=(x−2)(x+2). Cancel → x+2 at x=2 = 4."},
-    {text:"∫(3x²+1)dx:",options:["x³+x+C","6x+C","3x³+C","x³+C"],answer:0,explanation:"∫3x²dx=x³, ∫1dx=x. Result: x³+x+C."},
-  ],
-  "12-2":[
-    {text:"Common ratio of 3,9,27,81:",options:["3","6","9","27"],answer:0,explanation:"9÷3=3. r=3."},
-    {text:"Sum of first 5 terms of 1,2,4,8…:",options:["31","32","16","63"],answer:0,explanation:"Sₙ=a(rⁿ−1)/(r−1)=31."},
-    {text:"Which is arithmetic?",options:["2,5,8,11","1,2,4,8","1,4,9,16","3,9,27,81"],answer:0,explanation:"d=3 constant."},
-    {text:"nth term with a=2,r=3:",options:["2·3ⁿ⁻¹","3·2ⁿ","2ⁿ","3ⁿ"],answer:0,explanation:"aₙ=a·rⁿ⁻¹=2·3ⁿ⁻¹."},
-    {text:"Geometric mean of 4 and 36:",options:["12","10","18","8"],answer:0,explanation:"√(4×36)=√144=12."},
-  ],
-  "12-3":[
-    {text:"Mean of 5,10,15,20,25:",options:["15","12","20","10"],answer:0,explanation:"75/5=15."},
-    {text:"Median of 2,3,5,7,9:",options:["5","7","3","9"],answer:0,explanation:"Middle of 5 values = 5."},
-  ],
-  "11-1":[
-    {text:"Roots of x²−5x+6=0:",options:["2 and 3","1 and 6","−2 and −3","3 and 4"],answer:0,explanation:"(x−2)(x−3)=0."},
-    {text:"f(x)=2x+3 → f(4):",options:["11","8","14","10"],answer:0,explanation:"2(4)+3=11."},
-    {text:"Degree of 4x³−2x+7:",options:["3","1","4","7"],answer:0,explanation:"Highest power is 3."},
-    {text:"Which is a polynomial?",options:["3x²+2x−1","√x+1","1/x","x⁻²"],answer:0,explanation:"Non-negative integer exponents only."},
-  ],
-  "11-2":[
-    {text:"log₁₀(1000):",options:["3","4","2","10"],answer:0,explanation:"10³=1000."},
-    {text:"e⁰=?",options:["1","0","e","∞"],answer:0,explanation:"Any non-zero number to power 0 = 1."},
-    {text:"2ˣ=32 → x=?",options:["5","4","6","3"],answer:0,explanation:"2⁵=32."},
-  ],
-  "11-3":[
-    {text:"sin(90°)=?",options:["1","0","−1","½"],answer:0,explanation:"By unit circle, sin(90°)=1."},
-    {text:"cos(0°)=?",options:["1","0","−1","½"],answer:0,explanation:"At 0° on unit circle, x-coord=1."},
-  ],
-  "10-1":[
-    {text:"Solve 2x²−8=0:",options:["x=±2","x=2","x=4","x=±4"],answer:0,explanation:"x²=4 → x=±2."},
-    {text:"Discriminant ax²+bx+c:",options:["b²−4ac","−b/2a","√(b²−4ac)","4ac−b²"],answer:0,explanation:"Δ=b²−4ac."},
-    {text:"x²+bx+9=0 equal roots → b=?",options:["6","3","9","4"],answer:0,explanation:"Δ=0 → b²=36 → b=±6."},
-  ],
-  "10-2":[
-    {text:"Midpoint of (2,4) and (6,8):",options:["(4,6)","(3,5)","(8,12)","(2,4)"],answer:0,explanation:"((2+6)/2,(4+8)/2)=(4,6)."},
-    {text:"Slope through (1,2) and (3,6):",options:["2","4","1","3"],answer:0,explanation:"(6−2)/(3−1)=2."},
-    {text:"Line slope 3 through (0,1):",options:["y=3x+1","y=x+3","y=3x","y=1"],answer:0,explanation:"y=mx+b=3x+1."},
-    {text:"Distance (0,0) to (3,4):",options:["5","7","4","3"],answer:0,explanation:"√(9+16)=5."},
-  ],
-  "9-1":[
-    {text:"Solve 3x+6=18:",options:["4","6","3","12"],answer:0,explanation:"3x=12 → x=4."},
-    {text:"2(x−3)=10 → x=?",options:["8","5","4","7"],answer:0,explanation:"2x−6=10 → x=8."},
-  ],
-  "9-2":[
-    {text:"3:x=6:14 → x=?",options:["7","9","4","6"],answer:0,explanation:"3×14=6x → x=7."},
-    {text:"150 km in 3 hrs → speed:",options:["50 km/h","45 km/h","60 km/h","30 km/h"],answer:0,explanation:"150/3=50 km/h."},
-    {text:"15% of 200:",options:["30","15","20","25"],answer:0,explanation:"0.15×200=30."},
-  ],
-};
-
-function buildYearData(subjectName: string, year: string): { year: string; grades: GradeData[] } {
-  const make = (g: number, u: number, count: number): Question[] => {
-    const bank = QUESTION_BANK[`${g}-${u}`] ?? [];
-    return Array.from({ length: count }, (_, i) =>
-      bank[i] ? { id: i+1, ...bank[i] } : {
-        id: i+1,
-        text: `[${subjectName} Gr.${g} U${u}] Q${i+1}: Select the correct concept.`,
-        options:["Option A — Correct","Option B","Option C","Option D"],
-        answer:0,
-        explanation:`Grade ${g}, Unit ${u}: Option A is the correct answer per Ethiopian curriculum.`,
-      }
-    );
-  };
-  return {
-    year,
-    grades:[
-      {grade:12,units:[
-        {unit:1,title:"Differential Calculus",     questions:make(12,1,3)},
-        {unit:2,title:"Sequences & Series",        questions:make(12,2,5)},
-        {unit:3,title:"Introduction to Statistics",questions:make(12,3,2)},
-      ]},
-      {grade:11,units:[
-        {unit:1,title:"Polynomial Functions",      questions:make(11,1,4)},
-        {unit:2,title:"Exponential & Logarithms",  questions:make(11,2,3)},
-        {unit:3,title:"Trigonometry",              questions:make(11,3,2)},
-      ]},
-      {grade:10,units:[
-        {unit:1,title:"Quadratic Equations",       questions:make(10,1,3)},
-        {unit:2,title:"Coordinate Geometry",       questions:make(10,2,4)},
-      ]},
-      {grade:9,units:[
-        {unit:1,title:"Linear Equations",          questions:make(9,1,2)},
-        {unit:2,title:"Ratio & Proportion",        questions:make(9,2,3)},
-      ]},
-    ],
-  };
-}
 
 // Per-subject past papers. Most subjects have 4 years (2014–2017 E.C.);
 // Economics has 2 years (2016–2017 E.C).
@@ -594,7 +502,7 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
 function YearUnitContent({subject,year,onUnitSelect}:{
   subject:Subject;year:string;onUnitSelect:(g:number,u:Unit)=>void;
 }) {
-  const data=buildYearData(subject.name,year);
+  const data=useMemo(()=>({year,grades:groupPaperByUnits(subject.id,getPaperQuestions(subject.id,`${year} E.C.`,subject.name)) as GradeData[]}),[subject.id,subject.name,year]);
   const [expanded,setExpanded]=useState<number|null>(12);
   const totalQ=data.grades.reduce((a,g)=>a+g.units.reduce((b,u)=>b+u.questions.length,0),0);
   return (
@@ -623,8 +531,8 @@ function YearUnitContent({subject,year,onUnitSelect}:{
                   exit={{height:0,opacity:0}} transition={{duration:0.24,ease:"easeInOut"}} className="overflow-hidden">
                   <div className="border-t border-border divide-y divide-border">
                     {g.units.map(u=>(
-                      <motion.button key={u.unit} whileTap={{scale:0.98}} onClick={()=>onUnitSelect(g.grade,u)}
-                        className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-muted transition-colors">
+                      <motion.button key={u.unit} whileTap={{scale:u.questions.length?0.98:1}} disabled={!u.questions.length} onClick={()=>u.questions.length&&onUnitSelect(g.grade,u)}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-muted transition-colors ${u.questions.length?"":"opacity-50"}`}>
                         <div className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0"
                           style={{background:subject.color+"18",color:subject.color}}>U{u.unit}</div>
                         <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-foreground">Unit {u.unit} — {u.title}</p><p className="text-xs text-muted-foreground">{u.questions.length} questions</p></div>
