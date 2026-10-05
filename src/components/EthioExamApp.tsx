@@ -11,6 +11,7 @@ import {
   Pencil, Save, Minus, Plus, CalendarDays, Phone, Lock, Eye, EyeOff,
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
+import { groupPaperByUnits } from "@/lib/curriculum-units";
 import { recordStudyDay, getStreakCount, getStudyDays, getWeek, type StreakDay } from "@/lib/streak";
 import { recordExamAttempt, getExamStats, getExamHistory, getSubjectProgress, getScoreTrend, getImprovement, getAchievements, getLatestPerPaper, type ExamStats, type ExamAttempt } from "@/lib/exam-history";
 import { recordRecentExam, updateRecentExamScore, getRecentExams, type RecentExam } from "@/lib/recent-exams";
@@ -594,7 +595,7 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
 function YearUnitContent({subject,year,onUnitSelect}:{
   subject:Subject;year:string;onUnitSelect:(g:number,u:Unit)=>void;
 }) {
-  const data=buildYearData(subject.name,year);
+  const data=useMemo(()=>({year,grades:groupPaperByUnits(subject.id,getPaperQuestions(subject.id,`${year} E.C.`,subject.name)) as GradeData[]}),[subject.id,subject.name,year]);
   const [expanded,setExpanded]=useState<number|null>(12);
   const totalQ=data.grades.reduce((a,g)=>a+g.units.reduce((b,u)=>b+u.questions.length,0),0);
   return (
@@ -623,8 +624,8 @@ function YearUnitContent({subject,year,onUnitSelect}:{
                   exit={{height:0,opacity:0}} transition={{duration:0.24,ease:"easeInOut"}} className="overflow-hidden">
                   <div className="border-t border-border divide-y divide-border">
                     {g.units.map(u=>(
-                      <motion.button key={u.unit} whileTap={{scale:0.98}} onClick={()=>onUnitSelect(g.grade,u)}
-                        className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-muted transition-colors">
+                      <motion.button key={u.unit} whileTap={{scale:u.questions.length?0.98:1}} disabled={!u.questions.length} onClick={()=>u.questions.length&&onUnitSelect(g.grade,u)}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-muted transition-colors ${u.questions.length?"":"opacity-50"}`}>
                         <div className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0"
                           style={{background:subject.color+"18",color:subject.color}}>U{u.unit}</div>
                         <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-foreground">Unit {u.unit} — {u.title}</p><p className="text-xs text-muted-foreground">{u.questions.length} questions</p></div>
