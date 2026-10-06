@@ -552,7 +552,7 @@ function YearUnitContent({subject,year,onUnitSelect}:{
 
 // ─── Subject Details ──────────────────────────────────────────────────────────
 
-function SubjectDetails({subject,onBack,onOpenQuiz}:{
+function SubjectDetails({subject,onBack,onOpenQuiz,onYearChange,selectedYear}:{
   subject:Subject;onBack:()=>void;
   onOpenQuiz:(questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number)=>void;
   onYearChange:(y:string)=>void;selectedYear:string;
@@ -666,7 +666,7 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
               <button key={y}
                 className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all"
                 style={active?{background:subject.color,color:"#fff"}:{background:"var(--card)",color:"var(--muted-foreground)",border:`1.5px solid ${subject.color}30`}}
-                onClick={()=>setSelectedYear(y)}>
+                onClick={()=>onYearChange(y)}>
                 {y}
               </button>
             );
