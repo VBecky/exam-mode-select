@@ -332,16 +332,41 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
   questions:Question[];subject:Subject;title:string;
   initialMode:"practice"|"exam";durationSeconds?:number;onBack:()=>void;
 }) {
+  const progressKey=(m:string)=>`quizProgress:${subject.id}:${title}:${m}`;
+  const loadProgress=(m:string):{answers:Record<number,number>;flags:number[];timeLeft?:number}|null=>{
+    try{const s=localStorage.getItem(progressKey(m));return s?JSON.parse(s):null;}catch{return null;}
+  };
   const [mode,setMode]=useState<"practice"|"exam">(initialMode);
-  const [answers,setAnswers]=useState<Record<number,number>>({});
-  const [flags,setFlags]=useState<Set<number>>(new Set());
+  const [answers,setAnswers]=useState<Record<number,number>>(()=>loadProgress(initialMode)?.answers??{});
+  const [flags,setFlags]=useState<Set<number>>(()=>new Set(loadProgress(initialMode)?.flags??[]));
   const [submitted,setSubmitted]=useState(false);
   const [navOpen,setNavOpen]=useState(false);
-  const [timeLeft,setTimeLeft]=useState<number>(durationSeconds??0);
+  const [timeLeft,setTimeLeft]=useState<number>(()=>{const t=loadProgress(initialMode)?.timeLeft;return typeof t==="number"&&t>0?t:(durationSeconds??0);});
   const questionRefs=useRef<(HTMLDivElement|null)[]>([]);
 
-  const reset=()=>{setAnswers({});setFlags(new Set());setSubmitted(false);setTimeLeft(durationSeconds??0);};
-  const handleModeChange=(m:"practice"|"exam")=>{setMode(m);reset();};
+  // Persist in-progress answers so Continue resumes exactly where the user stopped
+  useEffect(()=>{
+    try{
+      if(submitted){localStorage.removeItem(progressKey(mode));return;}
+      localStorage.setItem(progressKey(mode),JSON.stringify({answers,flags:[...flags],timeLeft:mode==="exam"?timeLeft:undefined}));
+    }catch{}
+  },[answers,flags,submitted,mode,mode==="exam"?Math.floor(timeLeft/5):0]);
+
+  // On open, scroll to the first unanswered question
+  useEffect(()=>{
+    if(Object.keys(answers).length===0) return;
+    const i=questions.findIndex(q=>answers[q.id]===undefined);
+    const idx=i===-1?questions.length-1:i;
+    const t=setTimeout(()=>questionRefs.current[idx]?.scrollIntoView({block:"start"}),150);
+    return()=>clearTimeout(t);
+  },[]);
+
+  const reset=()=>{try{localStorage.removeItem(progressKey(mode));}catch{}setAnswers({});setFlags(new Set());setSubmitted(false);setTimeLeft(durationSeconds??0);};
+  const handleModeChange=(m:"practice"|"exam")=>{
+    const p=loadProgress(m);
+    setMode(m);setAnswers(p?.answers??{});setFlags(new Set(p?.flags??[]));setSubmitted(false);
+    setTimeLeft(typeof p?.timeLeft==="number"&&p.timeLeft>0?p.timeLeft:(durationSeconds??0));
+  };
 
   // Countdown timer for exam mode
   useEffect(()=>{
