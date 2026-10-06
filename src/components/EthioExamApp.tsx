@@ -332,25 +332,30 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
   questions:Question[];subject:Subject;title:string;
   initialMode:"practice"|"exam";durationSeconds?:number;onBack:()=>void;
 }) {
-  const progressKey=(m:string)=>`quizProgress:${subject.id}:${title}:${m}`;
-  const loadProgress=(m:string):{answers:Record<number,number>;flags:number[];timeLeft?:number}|null=>{
-    try{const s=localStorage.getItem(progressKey(m));return s?JSON.parse(s):null;}catch{return null;}
+  // One shared save per paper so switching Practice/Exam keeps the same answers
+  const progressKey=(_m?:string)=>`quizProgress:${subject.id}:${title}`;
+  const loadProgress=(_m?:string):{answers:Record<number,number>;flags:number[];timeLeft?:number}|null=>{
+    try{
+      const s=localStorage.getItem(progressKey())
+        ??localStorage.getItem(`quizProgress:${subject.id}:${title}:${initialMode}`);
+      return s?JSON.parse(s):null;
+    }catch{return null;}
   };
   const [mode,setMode]=useState<"practice"|"exam">(initialMode);
-  const [answers,setAnswers]=useState<Record<number,number>>(()=>loadProgress(initialMode)?.answers??{});
-  const [flags,setFlags]=useState<Set<number>>(()=>new Set(loadProgress(initialMode)?.flags??[]));
+  const [answers,setAnswers]=useState<Record<number,number>>(()=>loadProgress()?.answers??{});
+  const [flags,setFlags]=useState<Set<number>>(()=>new Set(loadProgress()?.flags??[]));
   const [submitted,setSubmitted]=useState(false);
   const [navOpen,setNavOpen]=useState(false);
-  const [timeLeft,setTimeLeft]=useState<number>(()=>{const t=loadProgress(initialMode)?.timeLeft;return typeof t==="number"&&t>0?t:(durationSeconds??0);});
+  const [timeLeft,setTimeLeft]=useState<number>(()=>{const t=loadProgress()?.timeLeft;return typeof t==="number"&&t>0?t:(durationSeconds??0);});
   const questionRefs=useRef<(HTMLDivElement|null)[]>([]);
 
   // Persist in-progress answers so Continue resumes exactly where the user stopped
   useEffect(()=>{
     try{
-      if(submitted){localStorage.removeItem(progressKey(mode));return;}
-      localStorage.setItem(progressKey(mode),JSON.stringify({answers,flags:[...flags],timeLeft:mode==="exam"?timeLeft:undefined}));
+      if(submitted){localStorage.removeItem(progressKey());return;}
+      localStorage.setItem(progressKey(),JSON.stringify({answers,flags:[...flags],timeLeft}));
     }catch{}
-  },[answers,flags,submitted,mode,mode==="exam"?Math.floor(timeLeft/5):0]);
+  },[answers,flags,submitted,Math.floor(timeLeft/5)]);
 
   // On open, scroll to the first unanswered question
   useEffect(()=>{
@@ -361,11 +366,9 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
     return()=>clearTimeout(t);
   },[]);
 
-  const reset=()=>{try{localStorage.removeItem(progressKey(mode));}catch{}setAnswers({});setFlags(new Set());setSubmitted(false);setTimeLeft(durationSeconds??0);};
+  const reset=()=>{try{localStorage.removeItem(progressKey());}catch{}setAnswers({});setFlags(new Set());setSubmitted(false);setTimeLeft(durationSeconds??0);};
   const handleModeChange=(m:"practice"|"exam")=>{
-    const p=loadProgress(m);
-    setMode(m);setAnswers(p?.answers??{});setFlags(new Set(p?.flags??[]));setSubmitted(false);
-    setTimeLeft(typeof p?.timeLeft==="number"&&p.timeLeft>0?p.timeLeft:(durationSeconds??0));
+    setMode(m);setSubmitted(false);
   };
 
   // Countdown timer for exam mode
@@ -1778,7 +1781,7 @@ export default function App() {
               )}
               {screen.name==="quiz"&&(
                 <motion.div key="quiz" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <QuizScreen questions={screen.questions} subject={screen.subject} title={screen.title}
+                  <QuizScreen key={`${screen.subject.id}:${screen.title}`} questions={screen.questions} subject={screen.subject} title={screen.title}
                     initialMode={screen.initialMode} durationSeconds={screen.durationSeconds}
                     onBack={()=>setScreen(screen.from==="home"?{name:"home"}:{name:"subjectDetails",subject:screen.subject,from:detailsFromRef.current})}/>
                 </motion.div>
