@@ -555,8 +555,8 @@ function YearUnitContent({subject,year,onUnitSelect}:{
 function SubjectDetails({subject,onBack,onOpenQuiz}:{
   subject:Subject;onBack:()=>void;
   onOpenQuiz:(questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number)=>void;
+  onYearChange:(y:string)=>void;selectedYear:string;
 }) {
-  const [selectedYear,setSelectedYear]=useState("All Years");
   const [paperSearch,setPaperSearch]=useState("");
   const [sheetPaper,setSheetPaper]=useState<ReturnType<typeof defaultPapers>[0]|null>(null);
   const [container,setContainer]=useState<HTMLElement|null>(null);
