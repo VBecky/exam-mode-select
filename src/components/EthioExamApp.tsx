@@ -1669,6 +1669,7 @@ export default function App() {
   const [userPhone,setUserPhone]=useState(()=>{try{return localStorage.getItem("userPhone")||"";}catch{return "";}});
   const [userPassword,setUserPassword]=useState(()=>{try{return localStorage.getItem("userPassword")||"";}catch{return "";}});
   const [lastPaper,setLastPaper]=useState<LastPaper|null>(()=>{try{const s=localStorage.getItem("lastPaper");return s?JSON.parse(s):null;}catch{return null;}});
+  const [subjectYears,setSubjectYears]=useState<Record<string,string>>({});
 
   
 
