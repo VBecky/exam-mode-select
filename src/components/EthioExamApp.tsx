@@ -1178,7 +1178,7 @@ function ExamsScreen({onSubjectSelect,stream}:{onSubjectSelect:(id:number)=>void
   return (
     <div className="flex flex-col gap-4 pb-6">
       <div className="pt-2">
-        <h1 className="text-2xl font-bold text-foreground">Past Exams</h1>
+        <h1 className="text-2xl font-bold text-foreground">Exams</h1>
         <p className="text-sm text-muted-foreground mt-0.5 capitalize">{stream} Science stream</p>
       </div>
       <div className="relative">
