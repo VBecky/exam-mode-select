@@ -552,11 +552,11 @@ function YearUnitContent({subject,year,onUnitSelect}:{
 
 // ─── Subject Details ──────────────────────────────────────────────────────────
 
-function SubjectDetails({subject,onBack,onOpenQuiz}:{
+function SubjectDetails({subject,onBack,onOpenQuiz,onYearChange,selectedYear}:{
   subject:Subject;onBack:()=>void;
   onOpenQuiz:(questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number)=>void;
+  onYearChange:(y:string)=>void;selectedYear:string;
 }) {
-  const [selectedYear,setSelectedYear]=useState("All Years");
   const [paperSearch,setPaperSearch]=useState("");
   const [sheetPaper,setSheetPaper]=useState<ReturnType<typeof defaultPapers>[0]|null>(null);
   const [container,setContainer]=useState<HTMLElement|null>(null);
@@ -666,7 +666,7 @@ function SubjectDetails({subject,onBack,onOpenQuiz}:{
               <button key={y}
                 className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all"
                 style={active?{background:subject.color,color:"#fff"}:{background:"var(--card)",color:"var(--muted-foreground)",border:`1.5px solid ${subject.color}30`}}
-                onClick={()=>setSelectedYear(y)}>
+                onClick={()=>onYearChange(y)}>
                 {y}
               </button>
             );
@@ -1178,7 +1178,7 @@ function ExamsScreen({onSubjectSelect,stream}:{onSubjectSelect:(id:number)=>void
   return (
     <div className="flex flex-col gap-4 pb-6">
       <div className="pt-2">
-        <h1 className="text-2xl font-bold text-foreground">Past Exams</h1>
+        <h1 className="text-2xl font-bold text-foreground">Exams</h1>
         <p className="text-sm text-muted-foreground mt-0.5 capitalize">{stream} Science stream</p>
       </div>
       <div className="relative">
@@ -1669,6 +1669,7 @@ export default function App() {
   const [userPhone,setUserPhone]=useState(()=>{try{return localStorage.getItem("userPhone")||"";}catch{return "";}});
   const [userPassword,setUserPassword]=useState(()=>{try{return localStorage.getItem("userPassword")||"";}catch{return "";}});
   const [lastPaper,setLastPaper]=useState<LastPaper|null>(()=>{try{const s=localStorage.getItem("lastPaper");return s?JSON.parse(s):null;}catch{return null;}});
+  const [subjectYears,setSubjectYears]=useState<Record<string,string>>({});
 
   
 
@@ -1745,6 +1746,8 @@ export default function App() {
               {screen.name==="subjectDetails"&&(
                 <motion.div key="subjectDetails" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <SubjectDetails subject={screen.subject} onBack={()=>setScreen(screen.from==="home"?{name:"home"}:{name:"exams"})}
+                    selectedYear={subjectYears[screen.subject.id]??"All Years"}
+                    onYearChange={y=>setSubjectYears(prev=>({...prev,[screen.subject.id]:y}))}
                     onOpenQuiz={(q,t,m,d)=>openQuiz(screen.subject,q,t,m,d,"subjectDetails")}/>
                 </motion.div>
               )}
