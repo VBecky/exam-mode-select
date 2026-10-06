@@ -1746,6 +1746,8 @@ export default function App() {
               {screen.name==="subjectDetails"&&(
                 <motion.div key="subjectDetails" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
                   <SubjectDetails subject={screen.subject} onBack={()=>setScreen(screen.from==="home"?{name:"home"}:{name:"exams"})}
+                    selectedYear={subjectYears[screen.subject.id]??"All Years"}
+                    onYearChange={y=>setSubjectYears(prev=>({...prev,[screen.subject.id]:y}))}
                     onOpenQuiz={(q,t,m,d)=>openQuiz(screen.subject,q,t,m,d,"subjectDetails")}/>
                 </motion.div>
               )}
