@@ -33,7 +33,7 @@ type Screen =
   | { name: "home" }
   | { name: "exams" }
   | { name: "subjectDetails"; subject: Subject; from?: "home" | "exams" }
-  | { name: "quiz"; subject: Subject; questions: Question[]; title: string; initialMode: "practice" | "exam"; durationSeconds?: number; from?: "home" | "subjectDetails" }
+  | { name: "quiz"; subject: Subject; questions: Question[]; title: string; initialMode: "practice" | "exam"; durationSeconds?: number; from?: "home" | "subjectDetails"; resume?: boolean; openId?: number }
   | { name: "progress" }
   | { name: "profile" }
   | { name: "notifications"; from: "home" | "profile" }
@@ -328,34 +328,40 @@ function ExamResults({questions,answers,subject,title,onRetry,onBack}:{
 
 // ─── Quiz Screen ──────────────────────────────────────────────────────────────
 
-function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}:{
+function QuizScreen({questions,subject,title,initialMode,durationSeconds,resume,onBack}:{
   questions:Question[];subject:Subject;title:string;
-  initialMode:"practice"|"exam";durationSeconds?:number;onBack:()=>void;
+  initialMode:"practice"|"exam";durationSeconds?:number;resume?:boolean;onBack:()=>void;
 }) {
-  // One shared save per paper so switching Practice/Exam keeps the same answers
-  const progressKey=(_m?:string)=>`quizProgress:${subject.id}:${title}`;
-  const loadProgress=(_m?:string):{answers:Record<number,number>;flags:number[];timeLeft?:number}|null=>{
+  // Only ONE paper's answers are saved at a time. They come back only when the
+  // user taps Continue on Home (resume=true); any other way of opening starts fresh.
+  type SavedProgress={subjectId:number;title:string;mode:"practice"|"exam";answers:Record<number,number>;flags:number[];timeLeft?:number};
+  const PROGRESS_KEY="quizProgress";
+  const [initial]=useState<SavedProgress|null>(()=>{
     try{
-      const s=localStorage.getItem(progressKey())
-        ??localStorage.getItem(`quizProgress:${subject.id}:${title}:${initialMode}`);
-      return s?JSON.parse(s):null;
+      // Clean up old per-paper saves from earlier versions
+      Object.keys(localStorage).filter(k=>k.startsWith("quizProgress:")).forEach(k=>localStorage.removeItem(k));
+      const s=localStorage.getItem(PROGRESS_KEY);
+      const p:SavedProgress|null=s?JSON.parse(s):null;
+      if(resume&&p&&p.subjectId===subject.id&&p.title===title&&p.mode===initialMode) return p;
+      localStorage.removeItem(PROGRESS_KEY);
+      return null;
     }catch{return null;}
-  };
+  });
   const [mode,setMode]=useState<"practice"|"exam">(initialMode);
-  const [answers,setAnswers]=useState<Record<number,number>>(()=>loadProgress()?.answers??{});
-  const [flags,setFlags]=useState<Set<number>>(()=>new Set(loadProgress()?.flags??[]));
+  const [answers,setAnswers]=useState<Record<number,number>>(()=>initial?.answers??{});
+  const [flags,setFlags]=useState<Set<number>>(()=>new Set(initial?.flags??[]));
   const [submitted,setSubmitted]=useState(false);
   const [navOpen,setNavOpen]=useState(false);
-  const [timeLeft,setTimeLeft]=useState<number>(()=>{const t=loadProgress()?.timeLeft;return typeof t==="number"&&t>0?t:(durationSeconds??0);});
+  const [timeLeft,setTimeLeft]=useState<number>(()=>{const t=initial?.timeLeft;return typeof t==="number"&&t>0?t:(durationSeconds??0);});
   const questionRefs=useRef<(HTMLDivElement|null)[]>([]);
 
   // Persist in-progress answers so Continue resumes exactly where the user stopped
   useEffect(()=>{
     try{
-      if(submitted){localStorage.removeItem(progressKey());return;}
-      localStorage.setItem(progressKey(),JSON.stringify({answers,flags:[...flags],timeLeft}));
+      if(submitted){localStorage.removeItem(PROGRESS_KEY);return;}
+      localStorage.setItem(PROGRESS_KEY,JSON.stringify({subjectId:subject.id,title,mode,answers,flags:[...flags],timeLeft}));
     }catch{}
-  },[answers,flags,submitted,Math.floor(timeLeft/5)]);
+  },[answers,flags,submitted,mode,Math.floor(timeLeft/5)]);
 
   // On open, scroll to the first unanswered question
   useEffect(()=>{
@@ -366,9 +372,15 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,onBack}
     return()=>clearTimeout(t);
   },[]);
 
-  const reset=()=>{try{localStorage.removeItem(progressKey());}catch{}setAnswers({});setFlags(new Set());setSubmitted(false);setTimeLeft(durationSeconds??0);};
+  const reset=()=>{try{localStorage.removeItem(PROGRESS_KEY);}catch{}setAnswers({});setFlags(new Set());setSubmitted(false);setTimeLeft(durationSeconds??0);};
+  // Switching Practice/Exam starts the paper over
   const handleModeChange=(m:"practice"|"exam")=>{
-    setMode(m);setSubmitted(false);
+    if(m===mode) return;
+    reset();setMode(m);
+    try{
+      const s=localStorage.getItem("lastPaper");
+      if(s){const lp=JSON.parse(s);if(lp.subjectId===subject.id&&`${subject.name} ${lp.year}`===title)localStorage.setItem("lastPaper",JSON.stringify({...lp,mode:m}));}
+    }catch{}
   };
 
   // Countdown timer for exam mode
@@ -1078,7 +1090,7 @@ type LastPaper = {
 function HomeScreen({onNavigate,onNotifications,onContinue,onQuickStart,lastPaper,userName,stream}:{
   onNavigate:(tab:string,subjectId?:number)=>void;
   onNotifications:()=>void;
-  onContinue:(lp:LastPaper)=>void;
+  onContinue:(lp:LastPaper,resume?:boolean)=>void;
   onQuickStart:(subject:Subject)=>void;
   lastPaper:LastPaper|null;
   userName:string;
@@ -1173,7 +1185,7 @@ function HomeScreen({onNavigate,onNotifications,onContinue,onQuickStart,lastPape
               const dateLabel=days<=0?"Today":days===1?"Yesterday":`${days} days ago`;
               return (
                 <motion.button key={`${e.subjectId}-${e.year}-${i}`} whileTap={{scale:0.98}}
-                  onClick={()=>onContinue({subjectId:e.subjectId,year:e.year,duration:e.duration,questionsCount:e.questionsCount,mode:e.mode,ts:e.ts})}
+                  onClick={()=>onContinue({subjectId:e.subjectId,year:e.year,duration:e.duration,questionsCount:e.questionsCount,mode:e.mode,ts:e.ts},false)}
                   className="w-full bg-card rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-border text-left">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0" style={{background:s.color+"18"}}>{s.icon}</div>
                   <div className="flex-1 min-w-0">
@@ -1735,8 +1747,8 @@ export default function App() {
 
   const detailsFromRef=useRef<"home"|"exams">("exams");
   useEffect(()=>{if(screen.name==="subjectDetails")detailsFromRef.current=screen.from??"exams";},[screen]);
-  const openQuiz=(subject:Subject,questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number,from:"home"|"subjectDetails"="subjectDetails")=>{
-    setScreen({name:"quiz",subject,questions,title,initialMode:mode,durationSeconds,from});
+  const openQuiz=(subject:Subject,questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number,from:"home"|"subjectDetails"="subjectDetails",resume=false)=>{
+    setScreen({name:"quiz",subject,questions,title,initialMode:mode,durationSeconds,from,resume,openId:Date.now()});
   };
 
   const handleSaveAccount=(name:string,phone:string,password:string,s:Stream)=>{
@@ -1756,12 +1768,13 @@ export default function App() {
             <AnimatePresence initial={false} mode="popLayout">
               {screen.name==="home"&&(
                 <motion.div key="home" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <HomeScreen stream={stream} onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName} lastPaper={lastPaper} onContinue={(lp)=>{
+                  <HomeScreen stream={stream} onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName} lastPaper={lastPaper} onContinue={(lp,resume=true)=>{
                     const s=subjects.find(x=>x.id===lp.subjectId);
                     if(!s){setScreen({name:"exams"});return;}
                     const questions=getPaperQuestions(s.id,lp.year,s.name,lp.questionsCount);
                     const seconds=lp.mode==="exam"?Math.round((parseFloat((lp.duration.match(/([\d.]+)/)||["1"])[1])||1)*3600):undefined;
-                    openQuiz(s,questions,`${s.name} ${lp.year}`,lp.mode,seconds,"home");
+                    if(!resume){try{localStorage.setItem("lastPaper",JSON.stringify({...lp,ts:Date.now()}));}catch{}}
+                    openQuiz(s,questions,`${s.name} ${lp.year}`,lp.mode,seconds,"home",resume);
                   }} onQuickStart={(s)=>setScreen({name:"subjectDetails",subject:s,from:"home"})}/>
 
                 </motion.div>
@@ -1781,7 +1794,7 @@ export default function App() {
               )}
               {screen.name==="quiz"&&(
                 <motion.div key="quiz" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <QuizScreen key={`${screen.subject.id}:${screen.title}`} questions={screen.questions} subject={screen.subject} title={screen.title}
+                  <QuizScreen key={`${screen.subject.id}:${screen.title}:${screen.openId??0}`} resume={screen.resume} questions={screen.questions} subject={screen.subject} title={screen.title}
                     initialMode={screen.initialMode} durationSeconds={screen.durationSeconds}
                     onBack={()=>setScreen(screen.from==="home"?{name:"home"}:{name:"subjectDetails",subject:screen.subject,from:detailsFromRef.current})}/>
                 </motion.div>
