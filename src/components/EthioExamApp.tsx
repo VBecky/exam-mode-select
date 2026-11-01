@@ -33,7 +33,7 @@ type Screen =
   | { name: "home" }
   | { name: "exams" }
   | { name: "subjectDetails"; subject: Subject; from?: "home" | "exams" }
-  | { name: "quiz"; subject: Subject; questions: Question[]; title: string; initialMode: "practice" | "exam"; durationSeconds?: number; from?: "home" | "subjectDetails" }
+  | { name: "quiz"; subject: Subject; questions: Question[]; title: string; initialMode: "practice" | "exam"; durationSeconds?: number; from?: "home" | "subjectDetails"; resume?: boolean; openId?: number }
   | { name: "progress" }
   | { name: "profile" }
   | { name: "notifications"; from: "home" | "profile" }
@@ -1090,7 +1090,7 @@ type LastPaper = {
 function HomeScreen({onNavigate,onNotifications,onContinue,onQuickStart,lastPaper,userName,stream}:{
   onNavigate:(tab:string,subjectId?:number)=>void;
   onNotifications:()=>void;
-  onContinue:(lp:LastPaper)=>void;
+  onContinue:(lp:LastPaper,resume?:boolean)=>void;
   onQuickStart:(subject:Subject)=>void;
   lastPaper:LastPaper|null;
   userName:string;
@@ -1185,7 +1185,7 @@ function HomeScreen({onNavigate,onNotifications,onContinue,onQuickStart,lastPape
               const dateLabel=days<=0?"Today":days===1?"Yesterday":`${days} days ago`;
               return (
                 <motion.button key={`${e.subjectId}-${e.year}-${i}`} whileTap={{scale:0.98}}
-                  onClick={()=>onContinue({subjectId:e.subjectId,year:e.year,duration:e.duration,questionsCount:e.questionsCount,mode:e.mode,ts:e.ts})}
+                  onClick={()=>onContinue({subjectId:e.subjectId,year:e.year,duration:e.duration,questionsCount:e.questionsCount,mode:e.mode,ts:e.ts},false)}
                   className="w-full bg-card rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-border text-left">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0" style={{background:s.color+"18"}}>{s.icon}</div>
                   <div className="flex-1 min-w-0">
@@ -1747,8 +1747,8 @@ export default function App() {
 
   const detailsFromRef=useRef<"home"|"exams">("exams");
   useEffect(()=>{if(screen.name==="subjectDetails")detailsFromRef.current=screen.from??"exams";},[screen]);
-  const openQuiz=(subject:Subject,questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number,from:"home"|"subjectDetails"="subjectDetails")=>{
-    setScreen({name:"quiz",subject,questions,title,initialMode:mode,durationSeconds,from});
+  const openQuiz=(subject:Subject,questions:Question[],title:string,mode:"practice"|"exam",durationSeconds?:number,from:"home"|"subjectDetails"="subjectDetails",resume=false)=>{
+    setScreen({name:"quiz",subject,questions,title,initialMode:mode,durationSeconds,from,resume,openId:Date.now()});
   };
 
   const handleSaveAccount=(name:string,phone:string,password:string,s:Stream)=>{
@@ -1768,12 +1768,12 @@ export default function App() {
             <AnimatePresence initial={false} mode="popLayout">
               {screen.name==="home"&&(
                 <motion.div key="home" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <HomeScreen stream={stream} onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName} lastPaper={lastPaper} onContinue={(lp)=>{
+                  <HomeScreen stream={stream} onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName} lastPaper={lastPaper} onContinue={(lp,resume=true)=>{
                     const s=subjects.find(x=>x.id===lp.subjectId);
                     if(!s){setScreen({name:"exams"});return;}
                     const questions=getPaperQuestions(s.id,lp.year,s.name,lp.questionsCount);
                     const seconds=lp.mode==="exam"?Math.round((parseFloat((lp.duration.match(/([\d.]+)/)||["1"])[1])||1)*3600):undefined;
-                    openQuiz(s,questions,`${s.name} ${lp.year}`,lp.mode,seconds,"home");
+                    openQuiz(s,questions,`${s.name} ${lp.year}`,lp.mode,seconds,"home",resume);
                   }} onQuickStart={(s)=>setScreen({name:"subjectDetails",subject:s,from:"home"})}/>
 
                 </motion.div>
@@ -1793,7 +1793,7 @@ export default function App() {
               )}
               {screen.name==="quiz"&&(
                 <motion.div key="quiz" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <QuizScreen key={`${screen.subject.id}:${screen.title}`} questions={screen.questions} subject={screen.subject} title={screen.title}
+                  <QuizScreen key={`${screen.subject.id}:${screen.title}:${screen.openId??0}`} resume={screen.resume} questions={screen.questions} subject={screen.subject} title={screen.title}
                     initialMode={screen.initialMode} durationSeconds={screen.durationSeconds}
                     onBack={()=>setScreen(screen.from==="home"?{name:"home"}:{name:"subjectDetails",subject:screen.subject,from:detailsFromRef.current})}/>
                 </motion.div>
