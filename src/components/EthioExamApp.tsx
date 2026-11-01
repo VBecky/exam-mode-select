@@ -1773,6 +1773,7 @@ export default function App() {
                     if(!s){setScreen({name:"exams"});return;}
                     const questions=getPaperQuestions(s.id,lp.year,s.name,lp.questionsCount);
                     const seconds=lp.mode==="exam"?Math.round((parseFloat((lp.duration.match(/([\d.]+)/)||["1"])[1])||1)*3600):undefined;
+                    if(!resume){try{localStorage.setItem("lastPaper",JSON.stringify({...lp,ts:Date.now()}));}catch{}}
                     openQuiz(s,questions,`${s.name} ${lp.year}`,lp.mode,seconds,"home",resume);
                   }} onQuickStart={(s)=>setScreen({name:"subjectDetails",subject:s,from:"home"})}/>
 
