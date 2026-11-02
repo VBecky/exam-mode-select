@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import EthioExamApp from "@/components/EthioExamApp";
 import { loadRemoteQuestions } from "@/lib/exam-questions";
+import { useAccount } from "@/components/AccountProvider";
+import AuthScreen from "@/components/AuthScreen";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -26,6 +29,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  const {user,profile,loading,error,reload,signOut} = useAccount();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -38,8 +42,8 @@ function Index() {
     };
   }, []);
 
-  if (!ready) {
-    return <div style={{ minHeight: "100vh", background: "#e8e4f5" }} />;
-  }
-  return <EthioExamApp />;
+  if (!ready || (loading && !profile)) return <div className="min-h-dvh bg-background" aria-label="Loading EthioExam" />;
+  if (!user) return <AuthScreen />;
+  if (!profile || error) return <main className="min-h-dvh bg-background text-foreground flex flex-col items-center justify-center gap-4 px-6"><p role="alert">{error||'Your account could not be loaded.'}</p><Button onClick={()=>void reload()}>Try again</Button><Button variant="outline" onClick={()=>void signOut()}>Sign out</Button></main>;
+  return <EthioExamApp key={user.id} />;
 }

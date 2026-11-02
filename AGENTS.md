@@ -10,3 +10,6 @@
 <!-- LOVABLE:END -->
 
 - Progress activity uses one month calendar backed by local study days and exam history; keep it as the single calendar view to avoid duplicate weekly widgets.
+- Account identity is owned by Supabase Auth; profiles are read and saved through authenticated server functions so private details stay owner-scoped. Passwords must never be stored in app storage.
+- The public index offers inline phone authentication before mounting the exam experience; the root account provider owns session changes to avoid duplicate listeners.
+- Study data retains its existing local format, with active-account switching archiving and restoring each user's data by stable user ID to prevent cross-account mixing.

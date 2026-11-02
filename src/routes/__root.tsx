@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import katexCss from "katex/dist/katex.min.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AccountProvider } from "@/components/AccountProvider";
 
 function NotFoundComponent() {
   return (
@@ -87,8 +88,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "EthioExam — Ethiopian Matric Exam Prep" },
       { name: "twitter:description", content: "EthioExam is a premium exam preparation app for Ethiopian students, offering past exam papers, practice and exam modes, and progress tracking." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/00175e96-6418-438e-be57-00ab7e584de2/id-preview-556ed323--a42ed78f-0326-4baa-82aa-33647c52ca93.lovable.app-1784408224089.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/00175e96-6418-438e-be57-00ab7e584de2/id-preview-556ed323--a42ed78f-0326-4baa-82aa-33647c52ca93.lovable.app-1784408224089.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -124,7 +123,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AccountProvider><Outlet /></AccountProvider>
     </QueryClientProvider>
   );
 }
