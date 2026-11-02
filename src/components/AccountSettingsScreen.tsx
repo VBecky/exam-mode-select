@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { profileSchema, phoneSchema, changePasswordSchema } from '@/lib/account-validation';
 
 export default function AccountSettingsScreen({onBack,onSaved}:{onBack:()=>void;onSaved:(name:string,phone:string,stream:'natural'|'social')=>void}) {
-  const {profile}=useAccount();
+  const {profile,updateProfile}=useAccount();
   const [name,setName]=useState(profile?.name??''); const [phone,setPhone]=useState(profile?.phone??'');
   const [stream,setStream]=useState<'natural'|'social'>(profile?.stream==='social'?'social':'natural');
   const [changePassword,setChangePassword]=useState(false); const [current,setCurrent]=useState(''); const [password,setPassword]=useState(''); const [confirm,setConfirm]=useState('');
@@ -29,6 +29,7 @@ export default function AccountSettingsScreen({onBack,onSaved}:{onBack:()=>void;
         if(savedPhone!==number.data) throw new Error('Your phone change requires SMS verification. Your current number is still active.');
       }
       const saved=await saveAccount({data:parsed.data});
+      updateProfile({...saved,phone:savedPhone});
       onSaved(saved.name,savedPhone,parsed.data.stream);setPhone(savedPhone);setNotice('Account updated successfully.');
     } catch(err){setError(err instanceof Error?err.message:'Could not save your changes.');}
     finally{setBusy(false);}

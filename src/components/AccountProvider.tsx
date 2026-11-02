@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 
 export type AccountProfile = Awaited<ReturnType<typeof getAccount>>;
-const AccountContext = createContext<{ user: User | null; profile: AccountProfile | null; loading: boolean; error: string; reload: () => Promise<void>; signOut: () => Promise<void> } | null>(null);
+const AccountContext = createContext<{ user: User | null; profile: AccountProfile | null; loading: boolean; error: string; reload: () => Promise<void>; signOut: () => Promise<void>; updateProfile: (profile:AccountProfile)=>void } | null>(null);
 export function AccountProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<AccountProfile | null>(null);
@@ -44,7 +44,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     setUser(null); setProfile(null);
     await router.navigate({ to: '/auth', replace: true });
   }
-  return <AccountContext.Provider value={{user,profile,loading,error,reload,signOut}}>{children}</AccountContext.Provider>;
+  return <AccountContext.Provider value={{user,profile,loading,error,reload,signOut,updateProfile:setProfile}}>{children}</AccountContext.Provider>;
 }
 export function useAccount() {
   const context = useContext(AccountContext);
