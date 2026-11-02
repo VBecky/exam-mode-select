@@ -18,6 +18,8 @@ import { recordRecentExam, updateRecentExamScore, getRecentExams, type RecentExa
 import { getDailyGoal, recordAnsweredQuestion, setDailyGoal, GOAL_OPTIONS } from "@/lib/daily-goal";
 import MathText from "@/components/MathText";
 import { Button } from "@/components/ui/button";
+import AccountSettingsScreen from "@/components/AccountSettingsScreen";
+import { useAccount } from "@/components/AccountProvider";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -962,124 +964,6 @@ function AboutScreen({onBack}:{onBack:()=>void}) {
 
 // ─── Account Settings Screen ──────────────────────────────────────────────────
 
-function AccountSettingsScreen({onBack,initName,initPhone,initPassword,initStream,onSave}:{
-  onBack:()=>void;initName:string;initPhone:string;initPassword:string;initStream:Stream;
-  onSave:(name:string,phone:string,password:string,stream:Stream)=>void;
-}) {
-  const [name,setName]=useState(initName);
-  const [phone,setPhone]=useState(initPhone);
-  const [password,setPassword]=useState(initPassword);
-  const [streamSel,setStreamSel]=useState<Stream>(initStream);
-  const [showPw,setShowPw]=useState(false);
-  const [errors,setErrors]=useState<{name?:string;phone?:string;password?:string}>({});
-  const [saved,setSaved]=useState(false);
-
-  const validate=()=>{
-    const e:{name?:string;phone?:string;password?:string}={};
-    if (!name.trim()) e.name="Name is required";
-    else if (name.trim().length<2) e.name="Name must be at least 2 characters";
-    if (!phone.trim()) e.phone="Phone number is required";
-    else if (!/^\+?[0-9\s-]{9,15}$/.test(phone.trim())) e.phone="Enter a valid phone number";
-    if (!password) e.password="Password is required";
-    else if (password.length<4) e.password="Password must be at least 4 characters";
-    return e;
-  };
-
-  const handleSave=()=>{
-    const e=validate();
-    if (Object.keys(e).length>0){setErrors(e);return;}
-    setErrors({});
-    onSave(name.trim(),phone.trim(),password,streamSel);
-    setSaved(true);
-    setTimeout(()=>setSaved(false),3000);
-  };
-
-  const inputCls="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-muted border text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30 transition-all";
-
-  return (
-    <div className="flex flex-col gap-5 pb-6">
-      <div className="flex items-center gap-3 pt-2">
-        <button className="w-9 h-9 rounded-2xl bg-card border border-border flex items-center justify-center shadow-sm" onClick={onBack}>
-          <ArrowLeft size={18} className="text-foreground"/>
-        </button>
-        <div><h1 className="text-xl font-bold text-foreground">Account Settings</h1></div>
-      </div>
-
-      <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
-        <AnimatePresence>
-          {saved&&(
-            <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} exit={{opacity:0}} className="flex items-center gap-2 p-3 rounded-xl bg-green-50 border border-green-200">
-              <CheckCheck size={16} className="text-green-600 flex-shrink-0"/>
-              <p className="text-sm font-medium text-green-700">Account updated successfully!</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Name */}
-        <div>
-          <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Full Name</label>
-          <div className="relative">
-            <Pencil size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-            <input value={name} onChange={e=>{setName(e.target.value);setErrors(p=>({...p,name:undefined}));}}
-              className={inputCls} style={{borderColor:errors.name?"#ef4444":"var(--border)"}} placeholder="Your full name"/>
-          </div>
-          {errors.name&&<p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={11}/>{errors.name}</p>}
-        </div>
-
-        {/* Phone */}
-        <div>
-          <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Phone Number</label>
-          <div className="relative">
-            <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-            <input value={phone} onChange={e=>{setPhone(e.target.value);setErrors(p=>({...p,phone:undefined}));}}
-              className={inputCls} style={{borderColor:errors.phone?"#ef4444":"var(--border)"}}
-              placeholder="e.g. +251 9XX XXX XXX" inputMode="tel"/>
-          </div>
-          {errors.phone&&<p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={11}/>{errors.phone}</p>}
-        </div>
-
-        {/* Password */}
-        <div>
-          <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Password</label>
-          <div className="relative">
-            <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-            <input value={password} onChange={e=>{setPassword(e.target.value);setErrors(p=>({...p,password:undefined}));}}
-              type={showPw?"text":"password"}
-              className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-muted border text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-              style={{borderColor:errors.password?"#ef4444":"var(--border)"}} placeholder="Your password"/>
-            <button onClick={()=>setShowPw(v=>!v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              {showPw?<EyeOff size={15}/>:<Eye size={15}/>}
-            </button>
-          </div>
-          {errors.password&&<p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={11}/>{errors.password}</p>}
-        </div>
-
-        {/* Stream */}
-        <div>
-          <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Stream</label>
-          <div className="flex gap-2">
-            {(["natural","social"] as const).map(s=>(
-              <button key={s} onClick={()=>setStreamSel(s)}
-                className="flex-1 py-2.5 rounded-2xl text-sm font-semibold transition-all"
-                style={streamSel===s?{background:"var(--primary)",color:"#fff"}:{background:"var(--muted)",color:"var(--muted-foreground)"}}>
-                {s==="natural"?"🔬 Natural":"🌐 Social"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <button onClick={handleSave}
-          className="w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 active:scale-95 transition-transform"
-          style={{background:"var(--primary)"}}>
-          <Save size={16}/> Save Changes
-        </button>
-      </div>
-
-      <p className="text-xs text-muted-foreground text-center">Your information is stored locally on this device.</p>
-    </div>
-  );
-}
-
 // ─── Home Screen ──────────────────────────────────────────────────────────────
 
 type LastPaper = {
@@ -1625,10 +1509,10 @@ function ProgressScreen({onBrowse}:{onBrowse:()=>void}) {
 
 // ─── Profile Screen ───────────────────────────────────────────────────────────
 
-function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport,onAccountSettings,onAbout,userName,userGrade}:{
+function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport,onAccountSettings,onAbout,onSignOut,userName,userGrade}:{
   stream:Stream;darkMode:boolean;onDarkMode:(v:boolean)=>void;
   onNotifications:()=>void;onHelpSupport:()=>void;onAccountSettings:()=>void;onAbout:()=>void;
-  userName:string;userGrade:string;
+  userName:string;userGrade:string;onSignOut:()=>void;
 }) {
   const menuItems=[
     {icon:Bell,       label:"Notifications",  sub:"Push & email alerts", action:onNotifications},
@@ -1682,7 +1566,7 @@ function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport
         ))}
       </div>
 
-      <button className="w-full py-3 rounded-2xl border border-red-300 flex items-center justify-center gap-2 text-red-500 font-semibold text-sm active:bg-red-50 transition-colors">
+      <button onClick={onSignOut} className="w-full py-3 rounded-2xl border border-red-300 flex items-center justify-center gap-2 text-red-500 font-semibold text-sm active:bg-red-50 transition-colors">
         <LogOut size={16}/> Sign Out
       </button>
     </div>
@@ -1701,13 +1585,13 @@ const navItems=[
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const {profile,signOut}=useAccount();
   const [screen,setScreen]=useState<Screen>({name:"home"});
-  const [stream,setStream]=useState<Stream>(()=>{try{return(localStorage.getItem("stream")||"natural") as Stream;}catch{return "natural";}});
+  const [stream,setStream]=useState<Stream>(profile?.stream==="social"?"social":"natural");
   const [darkMode,setDarkMode]=useState(()=>{try{return localStorage.getItem("darkMode")==="true";}catch{return false;}});
-  const [userName,setUserName]=useState(()=>{try{return localStorage.getItem("userName")||"Abebe Girma";}catch{return "Abebe Girma";}});
+  const [userName,setUserName]=useState(profile?.name??"");
   const [userGrade,setUserGrade]=useState(()=>{try{return localStorage.getItem("userGrade")||"12";}catch{return "12";}});
-  const [userPhone,setUserPhone]=useState(()=>{try{return localStorage.getItem("userPhone")||"";}catch{return "";}});
-  const [userPassword,setUserPassword]=useState(()=>{try{return localStorage.getItem("userPassword")||"";}catch{return "";}});
+  const [userPhone,setUserPhone]=useState(profile?.phone??"");
   const [lastPaper,setLastPaper]=useState<LastPaper|null>(()=>{try{const s=localStorage.getItem("lastPaper");return s?JSON.parse(s):null;}catch{return null;}});
   const [subjectYears,setSubjectYears]=useState<Record<string,string>>({});
 
@@ -1729,7 +1613,7 @@ export default function App() {
   useEffect(()=>{try{localStorage.setItem("userName",userName);}catch{}},          [userName]);
   useEffect(()=>{try{localStorage.setItem("userGrade",userGrade);}catch{}},        [userGrade]);
   useEffect(()=>{try{localStorage.setItem("userPhone",userPhone);}catch{}},        [userPhone]);
-  useEffect(()=>{try{localStorage.setItem("userPassword",userPassword);}catch{}},  [userPassword]);
+
 
   const inQuiz=screen.name==="quiz";
   const hideNav=inQuiz||["subjectDetails","notifications","helpSupport","accountSettings","about"].includes(screen.name);
@@ -1751,8 +1635,8 @@ export default function App() {
     setScreen({name:"quiz",subject,questions,title,initialMode:mode,durationSeconds,from,resume,openId:Date.now()});
   };
 
-  const handleSaveAccount=(name:string,phone:string,password:string,s:Stream)=>{
-    setUserName(name);setUserPhone(phone);setUserPassword(password);setStream(s);
+  const handleSaveAccount=(name:string,phone:string,s:Stream)=>{
+    setUserName(name);setUserPhone(phone);setStream(s);
   };
 
   const wrapperBg=darkMode?"#0d0b18":"#e8e4f5";
@@ -1812,6 +1696,7 @@ export default function App() {
                     onHelpSupport={()=>setScreen({name:"helpSupport"})}
                     onAccountSettings={()=>setScreen({name:"accountSettings"})}
                     onAbout={()=>setScreen({name:"about"})}
+                    onSignOut={()=>{void signOut().catch(()=>alert("Unable to sign out. Please try again."));}}
                     userName={userName} userGrade={userGrade}/>
                 </motion.div>
               )}
@@ -1827,7 +1712,7 @@ export default function App() {
               )}
               {screen.name==="accountSettings"&&(
                 <motion.div key="accountSettings" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <AccountSettingsScreen onBack={()=>setScreen({name:"profile"})} initName={userName} initPhone={userPhone} initPassword={userPassword} initStream={stream} onSave={handleSaveAccount}/>
+                  <AccountSettingsScreen onBack={()=>setScreen({name:"profile"})} onSaved={handleSaveAccount}/>
                 </motion.div>
               )}
               {screen.name==="about"&&(
