@@ -1587,7 +1587,10 @@ const navItems=[
 export default function App() {
   const {user,profile,signOut}=useAccount();
   const [screen,setScreen]=useState<Screen>({name:"home"});
-  const [stream,setStream]=useState<Stream>(profile?.stream==="social"?"social":"natural");
+  const [stream,setStream]=useState<Stream>(()=>{if(profile?.stream)return profile.stream==="social"?"social":"natural";try{return localStorage.getItem("stream")==="social"?"social":"natural";}catch{return "natural";}});
+  const [needsStream,setNeedsStream]=useState(false);
+  useEffect(()=>{try{if(!profile&&!localStorage.getItem("streamChosen"))setNeedsStream(true);}catch{}},[]);
+  const chooseStream=(s:Stream)=>{setStream(s);setNeedsStream(false);try{localStorage.setItem("streamChosen","1");localStorage.setItem("stream",s);}catch{}setScreen({name:"exams"});};
   const [darkMode,setDarkMode]=useState(()=>{try{return localStorage.getItem("darkMode")==="true";}catch{return false;}});
   const [userName,setUserName]=useState(profile?.name??"");
   const [userGrade,setUserGrade]=useState(()=>{try{return localStorage.getItem("userGrade")||"12";}catch{return "12";}});
@@ -1647,6 +1650,14 @@ export default function App() {
         className={`relative w-full max-w-[390px] ${darkMode?"dark":""}`}
         style={{height:"100dvh",background:"var(--background)",fontFamily:"'Inter',sans-serif",overflow:"hidden"}}>
 
+        {needsStream&&(
+          <div className="absolute inset-0 z-50 bg-background flex flex-col justify-center px-6 gap-6" role="dialog" aria-label="Choose your stream">
+            <div className="text-center"><h1 className="text-2xl font-bold text-foreground">Choose your field</h1><p className="text-sm text-muted-foreground mt-2">We'll show the exams for your stream. You can change it anytime in Profile.</p></div>
+            {([["natural","🔬","Natural Science","Math, Physics, Chemistry, Biology, English, SAT"],["social","🌐","Social Science","Math, History, Geography, Economics, English, SAT"]] as const).map(([id,icon,title,sub])=>(
+              <button key={id} onClick={()=>chooseStream(id)} className="w-full bg-card border border-border rounded-3xl p-5 flex items-center gap-4 text-left shadow-sm active:scale-[0.98] transition-transform">
+                <span className="text-4xl">{icon}</span><span className="flex-1"><span className="block text-lg font-bold text-foreground">{title}</span><span className="block text-xs text-muted-foreground mt-1">{sub}</span></span><ChevronRight size={18} className="text-muted-foreground"/>
+              </button>))}
+          </div>)}
         {/* Screens — each owns its scroll position so navigation never shows the old page scrolling back */}
         <div className="absolute inset-0">
             <AnimatePresence initial={false} mode="popLayout">
@@ -1712,7 +1723,7 @@ export default function App() {
               )}
               {screen.name==="accountSettings"&&(
                 <motion.div key="accountSettings" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <AccountSettingsScreen onBack={()=>setScreen({name:"profile"})} onSaved={handleSaveAccount}/>
+                  <AccountSettingsScreen onBack={()=>setScreen({name:"profile"})} onSaved={handleSaveAccount} onStreamChange={s=>{setStream(s);try{localStorage.setItem("streamChosen","1");}catch{}}}/>
                 </motion.div>
               )}
               {screen.name==="about"&&(
