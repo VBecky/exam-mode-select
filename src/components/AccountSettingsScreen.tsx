@@ -7,7 +7,7 @@ import { saveAccount } from '@/lib/account.functions';
 import { supabase } from '@/integrations/supabase/client';
 import { accountSchema, changePasswordSchema } from '@/lib/account-validation';
 
-export default function AccountSettingsScreen({onBack,onSaved}:{onBack:()=>void;onSaved:(name:string,phone:string,stream:'natural'|'social')=>void}) {
+export default function AccountSettingsScreen({onBack,onSaved,onStreamChange}:{onBack:()=>void;onSaved:(name:string,phone:string,stream:'natural'|'social')=>void;onStreamChange:(stream:'natural'|'social')=>void}) {
   const {user,profile,updateProfile}=useAccount();
   const signInMsg='Please sign in to save your info.';
   const [name,setName]=useState(profile?.name??''); const [phone,setPhone]=useState(profile?.phone??'');
@@ -51,7 +51,7 @@ export default function AccountSettingsScreen({onBack,onSaved}:{onBack:()=>void;
     <form noValidate onSubmit={save} className="space-y-4">
       <div className="space-y-2"><label htmlFor="account-name" className="block text-sm font-medium">Full name</label><input id="account-name" value={name} onChange={e=>setName(e.target.value)} autoComplete="name" required maxLength={100} className={accountInput}/></div>
       <div className="space-y-2"><label htmlFor="account-phone" className="block text-sm font-medium">Phone number</label><input id="account-phone" type="tel" value={phone} onChange={e=>setPhone(e.target.value)} autoComplete="tel" maxLength={32} className={accountInput}/></div>
-      <fieldset><legend className="text-sm font-medium mb-2">Stream</legend><div className="grid grid-cols-2 gap-2">{(['natural','social'] as const).map(s=><Button key={s} type="button" variant={stream===s?'default':'secondary'} aria-pressed={stream===s} onClick={()=>setStream(s)}>{s==='natural'?'🔬 Natural':'🌐 Social'}</Button>)}</div></fieldset>
+      <fieldset><legend className="text-sm font-medium mb-2">Stream</legend><div className="grid grid-cols-2 gap-2">{(['natural','social'] as const).map(s=><Button key={s} type="button" variant={stream===s?'default':'secondary'} aria-pressed={stream===s} onClick={()=>{setStream(s);if(!user){onStreamChange(s);setError('');setNotice(`Stream changed to ${s==='natural'?'Natural':'Social'}.`);}}}>{s==='natural'?'🔬 Natural':'🌐 Social'}</Button>)}</div></fieldset>
       {error&&<p role="alert" className="text-sm text-destructive">{error}</p>}{notice&&<p role="status" className="text-sm text-activity flex gap-2"><CheckCheck size={16}/>{notice}</p>}
       <Button disabled={busy} type="submit" className="w-full h-11">{busy?<Loader2 className="animate-spin"/>:<Save/>}Save Changes</Button>
     </form>
