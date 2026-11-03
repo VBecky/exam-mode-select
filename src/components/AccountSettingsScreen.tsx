@@ -48,7 +48,7 @@ export default function AccountSettingsScreen({onBack,onSaved}:{onBack:()=>void;
     finally{setPasswordBusy(false);}
   }
   return <div className="flex flex-col gap-5 pb-6 text-foreground"><header className="flex items-center gap-3 pt-2"><Button variant="outline" size="icon" onClick={onBack} aria-label="Back to Profile"><ArrowLeft/></Button><h1 className="text-xl font-bold">Account Settings</h1></header>
-    <form onSubmit={save} className="space-y-4">
+    <form noValidate onSubmit={save} className="space-y-4">
       <div className="space-y-2"><label htmlFor="account-name" className="block text-sm font-medium">Full name</label><input id="account-name" value={name} onChange={e=>setName(e.target.value)} autoComplete="name" required maxLength={100} className={accountInput}/></div>
       <div className="space-y-2"><label htmlFor="account-phone" className="block text-sm font-medium">Phone number</label><input id="account-phone" type="tel" value={phone} onChange={e=>setPhone(e.target.value)} autoComplete="tel" maxLength={32} className={accountInput}/></div>
       <fieldset><legend className="text-sm font-medium mb-2">Stream</legend><div className="grid grid-cols-2 gap-2">{(['natural','social'] as const).map(s=><Button key={s} type="button" variant={stream===s?'default':'secondary'} aria-pressed={stream===s} onClick={()=>setStream(s)}>{s==='natural'?'🔬 Natural':'🌐 Social'}</Button>)}</div></fieldset>
