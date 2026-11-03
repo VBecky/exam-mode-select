@@ -1652,7 +1652,7 @@ export default function App() {
             <AnimatePresence initial={false} mode="popLayout">
               {screen.name==="home"&&(
                 <motion.div key="home" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <HomeScreen stream={stream} onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName||"Guest"} signedIn={!!user} lastPaper={lastPaper} onContinue={(lp,resume=true)=>{
+                  <HomeScreen stream={stream} onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName||"Guest"} lastPaper={lastPaper} onContinue={(lp,resume=true)=>{
                     const s=subjects.find(x=>x.id===lp.subjectId);
                     if(!s){setScreen({name:"exams"});return;}
                     const questions=getPaperQuestions(s.id,lp.year,s.name,lp.questionsCount);
@@ -1697,7 +1697,7 @@ export default function App() {
                     onAccountSettings={()=>setScreen({name:"accountSettings"})}
                     onAbout={()=>setScreen({name:"about"})}
                     onSignOut={()=>{void signOut().catch(()=>alert("Unable to sign out. Please try again."));}}
-                    userName={userName} userGrade={userGrade}/>
+                    userName={userName||"Guest"} signedIn={!!user} userGrade={userGrade}/>
                 </motion.div>
               )}
               {screen.name==="notifications"&&(
