@@ -1509,10 +1509,10 @@ function ProgressScreen({onBrowse}:{onBrowse:()=>void}) {
 
 // ─── Profile Screen ───────────────────────────────────────────────────────────
 
-function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport,onAccountSettings,onAbout,onSignOut,userName,userGrade}:{
+function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport,onAccountSettings,onAbout,onSignOut,userName,userGrade,signedIn}:{
   stream:Stream;darkMode:boolean;onDarkMode:(v:boolean)=>void;
   onNotifications:()=>void;onHelpSupport:()=>void;onAccountSettings:()=>void;onAbout:()=>void;
-  userName:string;userGrade:string;onSignOut:()=>void;
+  userName:string;userGrade:string;onSignOut:()=>void;signedIn:boolean;
 }) {
   const menuItems=[
     {icon:Bell,       label:"Notifications",  sub:"Push & email alerts", action:onNotifications},
@@ -1566,9 +1566,9 @@ function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport
         ))}
       </div>
 
-      <button onClick={onSignOut} className="w-full py-3 rounded-2xl border border-red-300 flex items-center justify-center gap-2 text-red-500 font-semibold text-sm active:bg-red-50 transition-colors">
+      {signedIn&&<button onClick={onSignOut} className="w-full py-3 rounded-2xl border border-red-300 flex items-center justify-center gap-2 text-red-500 font-semibold text-sm active:bg-red-50 transition-colors">
         <LogOut size={16}/> Sign Out
-      </button>
+      </button>}
     </div>
   );
 }
@@ -1585,7 +1585,7 @@ const navItems=[
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const {profile,signOut}=useAccount();
+  const {user,profile,signOut}=useAccount();
   const [screen,setScreen]=useState<Screen>({name:"home"});
   const [stream,setStream]=useState<Stream>(profile?.stream==="social"?"social":"natural");
   const [darkMode,setDarkMode]=useState(()=>{try{return localStorage.getItem("darkMode")==="true";}catch{return false;}});
@@ -1652,7 +1652,7 @@ export default function App() {
             <AnimatePresence initial={false} mode="popLayout">
               {screen.name==="home"&&(
                 <motion.div key="home" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <HomeScreen stream={stream} onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName} lastPaper={lastPaper} onContinue={(lp,resume=true)=>{
+                  <HomeScreen stream={stream} onNavigate={navigate} onNotifications={()=>setScreen({name:"notifications",from:"home"})} userName={userName||"Guest"} signedIn={!!user} lastPaper={lastPaper} onContinue={(lp,resume=true)=>{
                     const s=subjects.find(x=>x.id===lp.subjectId);
                     if(!s){setScreen({name:"exams"});return;}
                     const questions=getPaperQuestions(s.id,lp.year,s.name,lp.questionsCount);
@@ -1722,6 +1722,13 @@ export default function App() {
               )}
             </AnimatePresence>
         </div>
+
+        {/* Floating sign-in button for guests on Profile; stays put while scrolling */}
+        {screen.name==="profile"&&!user&&(
+          <a href="/auth" className="absolute right-4 bottom-24 z-40 flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-5 py-3 text-sm font-semibold shadow-lg active:scale-95 transition-transform">
+            <User size={16}/> Sign Up / Login
+          </a>
+        )}
 
         {/* Bottom nav — always visible except in quiz */}
         {!hideNav&&(
