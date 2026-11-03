@@ -1,12 +1,13 @@
 import { describe, expect, test } from 'vitest';
 import { signupSchema, loginSchema, changePasswordSchema, normalizePhone } from './account-validation';
 describe('Phone accounts',()=>{
-  test('signup requires the requested name, phone and password',()=>{
-    expect(signupSchema.safeParse({name:'Bekuma Biranu',phone:'0912345678',password:'a-secure-password'}).success).toBe(true);
-    expect(signupSchema.safeParse({phone:'0912345678',password:'a-secure-password'}).success).toBe(false);
+  test('signup requires name, email and password',()=>{
+    expect(signupSchema.safeParse({name:'Bekuma Biranu',email:'b@example.com',password:'a-secure-password'}).success).toBe(true);
+    expect(signupSchema.safeParse({email:'b@example.com',password:'a-secure-password'}).success).toBe(false);
   });
-  test('login accepts phone and password without a name',()=>{
-    expect(loginSchema.parse({phone:'0912345678',password:'secret'}).phone).toBe('+251912345678');
+  test('login uses email and password',()=>{
+    expect(loginSchema.parse({email:' B@Example.com ',password:'secret'}).email).toBe('b@example.com');
+    expect(loginSchema.safeParse({email:'0912345678',password:'secret'}).success).toBe(false);
   });
   test('local and international phone forms identify the same account',()=>{
     expect(normalizePhone('0912 345 678')).toBe('+251912345678');
