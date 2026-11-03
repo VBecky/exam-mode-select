@@ -1,8 +1,9 @@
 # Roadmap
 
-- [ ] Add phone/password sign-up and login with saved account profiles.
-- [ ] Connect Account Settings and password changes to Supabase accounts.
-- [ ] Verify account forms and report any phone-provider setup required.
+- [x] Add phone/password sign-up and login with saved account profiles.
+- [x] Connect Account Settings and password changes to Supabase accounts.
+- [x] Verify public account forms, validation and error-free preview.
+- [ ] Verify real signup, login and password changes — blocked until the project owner enables Phone and disables Confirm phone in external Supabase Authentication Providers; no managed authenticated test session is available.
 
 - [x] Replace the Progress streak strip with a real monthly activity calendar.
 - [x] Connect calendar days to saved study activity and completed exams.
