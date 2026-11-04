@@ -1727,7 +1727,7 @@ export default function App() {
               )}
               {screen.name==="accountSettings"&&(
                 <motion.div key="accountSettings" className="absolute inset-0 overflow-y-auto scrollbar-hide px-5 pt-4" style={{paddingBottom:hideNav?0:76}} initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} transition={{duration:0.16,ease:"easeOut"}}>
-                  <AccountSettingsScreen onBack={()=>setScreen({name:"profile"})} onSaved={handleSaveAccount} onStreamChange={s=>{setStream(s);try{localStorage.setItem("streamChosen","1");}catch{}}}/>
+                  <AccountSettingsScreen currentStream={stream} onBack={()=>setScreen({name:"profile"})} onSaved={handleSaveAccount} onStreamChange={s=>{setStream(s);try{localStorage.setItem("streamChosen","1");}catch{}}}/>
                 </motion.div>
               )}
               {screen.name==="about"&&(
