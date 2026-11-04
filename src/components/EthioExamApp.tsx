@@ -757,15 +757,7 @@ function SubjectDetails({subject,onBack,onOpenQuiz,onYearChange,selectedYear}:{
 
 // ─── Notifications Screen ─────────────────────────────────────────────────────
 
-const NOTIFICATIONS = [
-  {id:1,title:"New exam available",body:"Mathematics 2017 E.C. is now available for practice.",time:"2h ago",read:false,icon:"📐"},
-  {id:2,title:"Daily goal reached! 🎉",body:"You completed your 5-question daily goal. Keep it up!",time:"5h ago",read:false,icon:"🎯"},
-  {id:3,title:"7-day study streak 🔥",body:"Amazing! You have maintained a 7-day streak. Don't break it!",time:"1d ago",read:true,icon:"🔥"},
-  {id:4,title:"Physics 2015 E.C. added",body:"Physics exam papers for 2015 E.C. are now available.",time:"2d ago",read:true,icon:"⚡"},
-  {id:5,title:"Achievement unlocked",body:"You earned the 'Top Scorer' badge with 91% in Chemistry.",time:"3d ago",read:true,icon:"🏆"},
-  {id:6,title:"Study reminder",body:"You haven't studied today. Open a subject to continue your streak.",time:"4d ago",read:true,icon:"📚"},
-  {id:7,title:"New feature: Dark Mode",body:"EthioExam now supports dark mode. Try it in Profile > Dark Mode.",time:"5d ago",read:true,icon:"🌙"},
-];
+
 
 function NotificationsScreen({onBack}:{onBack:()=>void}) {
   const [items,setItems]=useState<{id:string;title:string;body:string;icon:string;published_at:string}[]|null>(null);
