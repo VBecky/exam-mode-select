@@ -1,3 +1,4 @@
+import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
@@ -767,7 +768,18 @@ const NOTIFICATIONS = [
 ];
 
 function NotificationsScreen({onBack}:{onBack:()=>void}) {
-  const [notifications,setNotifications]=useState(NOTIFICATIONS);
+  const [items,setItems]=useState<{id:string;title:string;body:string;icon:string;published_at:string}[]|null>(null);
+  const [loadError,setLoadError]=useState(false);
+  const [readIds,setReadIds]=useState<string[]>([]);
+  useEffect(()=>{
+    try{setReadIds(JSON.parse(localStorage.getItem("readNotifications")||"[]"));}catch{}
+    supabase.from("notifications").select("id,title,body,icon,published_at").order("published_at",{ascending:false}).limit(100)
+      .then(({data,error})=>{if(error){setLoadError(true);setItems([]);}else setItems(data??[]);});
+  },[]);
+  const saveRead=(ids:string[])=>{setReadIds(ids);try{localStorage.setItem("readNotifications",JSON.stringify(ids));}catch{}};
+  const timeAgo=(iso:string)=>{const m=Math.floor((Date.now()-new Date(iso).getTime())/60000);if(m<1)return "now";if(m<60)return `${m}m ago`;const h=Math.floor(m/60);if(h<24)return `${h}h ago`;const d=Math.floor(h/24);return d<7?`${d}d ago`:new Date(iso).toLocaleDateString();};
+  const notifications=(items??[]).map(n=>({...n,time:timeAgo(n.published_at),read:readIds.includes(n.id)}));
+  const setNotifications=(f:(p:typeof notifications)=>typeof notifications)=>saveRead(f(notifications).filter(n=>n.read).map(n=>n.id));
   const unreadCount=notifications.filter(n=>!n.read).length;
 
   const markAllRead=()=>setNotifications(prev=>prev.map(n=>({...n,read:true})));
@@ -786,7 +798,7 @@ function NotificationsScreen({onBack}:{onBack:()=>void}) {
           <button onClick={markAllRead} className="text-xs font-semibold text-primary">Mark all read</button>
         )}
       </div>
-      {notifications.length===0?(
+      {items===null?(<p className="text-sm text-muted-foreground text-center py-16">Loading…</p>):loadError?(<p role="alert" className="text-sm text-destructive text-center py-16">Couldn't load notifications. Check your connection.</p>):notifications.length===0?(
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <span className="text-4xl">🔔</span>
           <p className="text-sm font-medium text-muted-foreground">No notifications yet</p>
