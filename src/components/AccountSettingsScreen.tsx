@@ -7,11 +7,11 @@ import { saveAccount } from '@/lib/account.functions';
 import { supabase } from '@/integrations/supabase/client';
 import { accountSchema, changePasswordSchema } from '@/lib/account-validation';
 
-export default function AccountSettingsScreen({onBack,onSaved,onStreamChange}:{onBack:()=>void;onSaved:(name:string,phone:string,stream:'natural'|'social')=>void;onStreamChange:(stream:'natural'|'social')=>void}) {
+export default function AccountSettingsScreen({onBack,onSaved,onStreamChange,currentStream}:{currentStream:'natural'|'social';onBack:()=>void;onSaved:(name:string,phone:string,stream:'natural'|'social')=>void;onStreamChange:(stream:'natural'|'social')=>void}) {
   const {user,profile,updateProfile}=useAccount();
   const signInMsg='Please sign in to save your info.';
   const [name,setName]=useState(profile?.name??''); const [phone,setPhone]=useState(profile?.phone??'');
-  const [stream,setStream]=useState<'natural'|'social'>(profile?.stream==='social'?'social':'natural');
+  const [stream,setStream]=useState<'natural'|'social'>(currentStream);
   const [changePassword,setChangePassword]=useState(false); const [current,setCurrent]=useState(''); const [password,setPassword]=useState(''); const [confirm,setConfirm]=useState('');
   const [busy,setBusy]=useState(false); const [error,setError]=useState(''); const [notice,setNotice]=useState('');
   const [passwordBusy,setPasswordBusy]=useState(false); const [passwordError,setPasswordError]=useState(''); const [passwordNotice,setPasswordNotice]=useState('');
