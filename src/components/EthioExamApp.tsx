@@ -829,18 +829,7 @@ const FAQ = [
 ];
 
 function HelpSupportScreen({onBack}:{onBack:()=>void}) {
-  const [name,setName]=useState("");
-  const [message,setMessage]=useState("");
-  const [sent,setSent]=useState(false);
   const [openFaq,setOpenFaq]=useState<number|null>(null);
-
-  const handleSend=()=>{
-    if (!name.trim()||!message.trim()) return;
-    // Ready for backend: { name, message, timestamp: new Date() }
-    setSent(true);
-    setName("");setMessage("");
-    setTimeout(()=>setSent(false),4000);
-  };
 
   return (
     <div className="flex flex-col gap-5 pb-6">
