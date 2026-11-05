@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Correct numbered question jumps below the fixed toolbar and verify the selected number.
+- [x] Extend Daily Goal to 250 questions and verify saving and progress.
+
 - [x] Add phone/password sign-up and login with saved account profiles.
 - [x] Connect Account Settings and password changes to Supabase accounts.
 - [x] Verify public account forms, validation and error-free preview.
