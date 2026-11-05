@@ -431,7 +431,7 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,resume,
   const NavigatorPortal=container?createPortal(
     <>
       {!submitted&&(
-        <motion.button whileTap={{scale:0.9}} onClick={()=>setNavOpen(true)}
+        <motion.button whileTap={{scale:0.9}} onClick={()=>setNavOpen(true)} aria-label="Open question navigator"
           className="absolute bottom-7 right-4 z-30 rounded-2xl text-white shadow-xl flex items-center justify-center"
           style={{width:52,height:52,background:subject.color,boxShadow:`0 8px 24px ${subject.color}50`}}>
           <LayoutGrid size={20}/>
@@ -465,7 +465,7 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,resume,
                 {questions.map((q,i)=>{
                   const isAns=answers[q.id]!==undefined, isFlag=flags.has(q.id);
                   return (
-                    <button key={q.id} onClick={()=>scrollToQ(i)}
+                    <button key={q.id} onClick={()=>scrollToQ(i)} aria-label={`Go to question ${i+1}`}
                       className="aspect-square rounded-xl flex items-center justify-center text-sm font-bold relative transition-all"
                       style={isFlag?{background:"#fff7ed",color:"#ea580c",border:"2px solid #f97316"}
                         :isAns?{background:subject.color,color:"#fff"}:{background:"var(--muted)",color:"var(--muted-foreground)"}}>
@@ -520,7 +520,7 @@ function QuizScreen({questions,subject,title,initialMode,durationSeconds,resume,
         </div>
         <div className="space-y-4">
           {questions.map((q,i)=>(
-            <div key={q.id} ref={el=>{questionRefs.current[i]=el;}}>
+            <div key={q.id} className="scroll-mt-24" data-question-number={i+1} ref={el=>{questionRefs.current[i]=el;}}>
               <QuestionCard q={q} index={i} mode={mode} selectedAnswer={answers[q.id]??null}
                 isFlagged={flags.has(q.id)} onAnswer={oi=>selectAnswer(q.id,oi)}
                 onToggleFlag={()=>toggleFlag(q.id)} color={subject.color}/>
