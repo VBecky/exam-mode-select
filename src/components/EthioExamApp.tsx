@@ -8,7 +8,7 @@ import {
   Play, Clock, CheckCircle, Star, Flame, Target, Trophy, Moon,
   LogOut, ArrowLeft, Zap, TrendingUp, XCircle, RotateCcw,
   ListChecks, BookMarked, Bookmark, LayoutGrid, GraduationCap, X, Sun,
-  Send, CheckCheck, AlertCircle, MessageSquare, ChevronLeft, HelpCircle, Info,
+  Send, AlertCircle, MessageSquare, ChevronLeft, HelpCircle, Info, Mail,
   Pencil, Save, Minus, Plus, CalendarDays, Phone, Lock, Eye, EyeOff,
 } from "lucide-react";
 import { getPaperQuestions } from "@/lib/exam-questions";
