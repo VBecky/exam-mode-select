@@ -1002,7 +1002,7 @@ function HomeScreen({onNavigate,onNotifications,onContinue,onQuickStart,lastPape
     <div className="flex flex-col gap-5 pb-6">
       <div className="flex items-start justify-between pt-2">
         <div>
-          <p className="text-sm text-muted-foreground font-medium">{(()=>{const h=new Date().getHours();return h<12?"Good Morning ☀️":h<17?"Good Afternoon 🌤️":"Good Evening 🌙";})()}</p>
+          <p className="text-sm text-muted-foreground font-medium">{(()=>{const h=new Date().getHours();return h<12?"Good Morning ☀️":h<18?"Good Afternoon 🌤️":"Good Evening 🌙";})()}</p>
           <h1 className="text-2xl font-bold text-foreground">{userName}</h1>
         </div>
         <button onClick={onNotifications} className="relative w-10 h-10 rounded-2xl bg-card flex items-center justify-center shadow-sm border border-border">
