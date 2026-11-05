@@ -770,7 +770,9 @@ function NotificationsScreen({onBack}:{onBack:()=>void}) {
   },[]);
   const saveRead=(ids:string[])=>{setReadIds(ids);try{localStorage.setItem("readNotifications",JSON.stringify(ids));}catch{}};
   const timeAgo=(iso:string)=>{const m=Math.floor((Date.now()-new Date(iso).getTime())/60000);if(m<1)return "now";if(m<60)return `${m}m ago`;const h=Math.floor(m/60);if(h<24)return `${h}h ago`;const d=Math.floor(h/24);return d<7?`${d}d ago`:new Date(iso).toLocaleDateString();};
-  const notifications=(items??[]).map(n=>({...n,time:timeAgo(n.published_at),read:readIds.includes(n.id)}));
+  const firstOpenedAt=(()=>{try{return localStorage.getItem("firstOpenedAt");}catch{return null;}})();
+  const WELCOME_ID="93087719-9a7f-4427-aa53-3b22f78ff501";
+  const notifications=(items??[]).map(n=>({...n,time:timeAgo(n.id===WELCOME_ID&&firstOpenedAt?firstOpenedAt:n.published_at),read:readIds.includes(n.id)}));
   const setNotifications=(f:(p:typeof notifications)=>typeof notifications)=>saveRead(f(notifications).filter(n=>n.read).map(n=>n.id));
   const unreadCount=notifications.filter(n=>!n.read).length;
 
@@ -1578,6 +1580,7 @@ const navItems=[
 
 export default function App() {
   const {user,profile,signOut}=useAccount();
+  useEffect(()=>{try{if(!localStorage.getItem("firstOpenedAt"))localStorage.setItem("firstOpenedAt",new Date().toISOString());}catch{}},[]);
   const [screen,setScreen]=useState<Screen>({name:"home"});
   const [stream,setStream]=useState<Stream>(()=>{if(profile?.stream)return profile.stream==="social"?"social":"natural";try{return localStorage.getItem("stream")==="social"?"social":"natural";}catch{return "natural";}});
   const [needsStream,setNeedsStream]=useState(false);
