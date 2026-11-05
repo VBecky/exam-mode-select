@@ -870,36 +870,35 @@ function HelpSupportScreen({onBack}:{onBack:()=>void}) {
         </div>
       </div>
 
-      {/* Contact form */}
+      {/* Contact */}
       <div>
         <p className="font-bold text-sm text-foreground mb-3">Contact Us</p>
-        <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
-          <AnimatePresence>
-            {sent&&(
-              <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} exit={{opacity:0}} className="flex items-center gap-2 p-3 rounded-xl bg-green-50 border border-green-200">
-                <CheckCheck size={16} className="text-green-600 flex-shrink-0"/>
-                <p className="text-sm font-medium text-green-700">Message sent! We'll get back to you within 24 hours.</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-1 block">Your Name</label>
-            <input value={name} onChange={e=>setName(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-muted border border-border text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-              placeholder="e.g. Abebe Girma"/>
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-1 block">Message</label>
-            <textarea value={message} onChange={e=>setMessage(e.target.value)} rows={4}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-muted border border-border text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30 transition-all resize-none"
-              placeholder="Describe your issue or question…"/>
-          </div>
-          <button onClick={handleSend}
-            disabled={!name.trim()||!message.trim()}
-            className="w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-40"
-            style={{background:"var(--primary)"}}>
-            <Send size={16}/> Send Message
-          </button>
+        <div className="space-y-2">
+          <a href="https://t.me/vb_e_c_k_y" target="_blank" rel="noreferrer"
+            className="flex items-center gap-3 bg-card rounded-2xl border border-border p-4 active:scale-[0.99] transition-transform">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{background:"#229ED9"}}>
+              <Send size={18} className="text-white"/>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">Contact via Telegram</p>
+              <p className="text-xs text-muted-foreground truncate">@vb_e_c_k_y</p>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground flex-shrink-0"/>
+          </a>
+          <a href="mailto:bekumabiranu978@gmail.com"
+            className="flex items-center gap-3 bg-card rounded-2xl border border-border p-4 active:scale-[0.99] transition-transform">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{background:"#EA4335"}}>
+              <Mail size={18} className="text-white"/>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">Contact via Email</p>
+              <p className="text-xs text-muted-foreground truncate">bekumabiranu978@gmail.com</p>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground flex-shrink-0"/>
+          </a>
+          <p className="text-xs text-muted-foreground px-1 pt-1 leading-relaxed">
+            Messages open in Telegram or your email app — they are not sent from inside EthioExam.
+          </p>
         </div>
       </div>
     </div>
