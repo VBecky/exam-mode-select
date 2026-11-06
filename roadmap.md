@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Add signed-in account deletion below Change Password, confirm ownership, and clear deleted-account data.
+- [ ] Verify deletion safeguards and Account Settings; live deletion requires a disposable signed-in account.
+
 - [x] Correct numbered question jumps below the fixed toolbar and verify the selected number.
 - [x] Extend Daily Goal to 250 questions and verify saving and progress.
 
