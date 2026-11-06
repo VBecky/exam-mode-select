@@ -772,7 +772,8 @@ function NotificationsScreen({onBack}:{onBack:()=>void}) {
   const timeAgo=(iso:string)=>{const m=Math.floor((Date.now()-new Date(iso).getTime())/60000);if(m<1)return "now";if(m<60)return `${m}m ago`;const h=Math.floor(m/60);if(h<24)return `${h}h ago`;const d=Math.floor(h/24);return d<7?`${d}d ago`:new Date(iso).toLocaleDateString();};
   const firstOpenedAt=(()=>{try{return localStorage.getItem("firstOpenedAt");}catch{return null;}})();
   const WELCOME_ID="93087719-9a7f-4427-aa53-3b22f78ff501";
-  const notifications=(items??[]).map(n=>({...n,time:timeAgo(n.id===WELCOME_ID&&firstOpenedAt?firstOpenedAt:n.published_at),read:readIds.includes(n.id)}));
+  const brand=(t:string)=>t.replace(/EthioExam/g,"ExamPlus");
+  const notifications=(items??[]).map(n=>({...n,title:brand(n.title),body:brand(n.body),time:timeAgo(n.id===WELCOME_ID&&firstOpenedAt?firstOpenedAt:n.published_at),read:readIds.includes(n.id)}));
   const setNotifications=(f:(p:typeof notifications)=>typeof notifications)=>saveRead(f(notifications).filter(n=>n.read).map(n=>n.id));
   const unreadCount=notifications.filter(n=>!n.read).length;
 
@@ -899,7 +900,7 @@ function HelpSupportScreen({onBack}:{onBack:()=>void}) {
             <ChevronRight size={16} className="text-muted-foreground flex-shrink-0"/>
           </a>
           <p className="text-xs text-muted-foreground px-1 pt-1 leading-relaxed">
-            Messages open in Telegram or your email app — they are not sent from inside EthioExam.
+            Messages open in Telegram or your email app — they are not sent from inside ExamPlus.
           </p>
         </div>
       </div>
@@ -916,13 +917,13 @@ function AboutScreen({onBack}:{onBack:()=>void}) {
         <button className="w-9 h-9 rounded-2xl bg-card border border-border flex items-center justify-center shadow-sm" onClick={onBack}>
           <ArrowLeft size={18} className="text-foreground"/>
         </button>
-        <div><h1 className="text-xl font-bold text-foreground">About EthioExam</h1></div>
+        <div><h1 className="text-xl font-bold text-foreground">About ExamPlus</h1></div>
       </div>
 
       <div className="bg-card rounded-3xl border border-border p-6 flex flex-col items-center text-center shadow-sm">
         <div className="w-16 h-16 rounded-3xl flex items-center justify-center text-3xl mb-3"
           style={{background:"linear-gradient(135deg,var(--primary),#9D6FF7)"}}>🎓</div>
-        <h2 className="text-lg font-bold text-foreground">EthioExam</h2>
+        <h2 className="text-lg font-bold text-foreground">ExamPlus</h2>
         <p className="text-xs text-muted-foreground mt-1">Version 2.1.0</p>
         <p className="text-sm text-muted-foreground mt-4 leading-relaxed">
           A premium exam preparation app for Ethiopian Grade 12 students. Practice real
@@ -1511,7 +1512,7 @@ function ProfileScreen({stream,darkMode,onDarkMode,onNotifications,onHelpSupport
   const menuItems=[
     {icon:Bell,       label:"Notifications",  sub:"Push & email alerts", action:onNotifications},
     {icon:HelpCircle, label:"Help & Support",  sub:"FAQ & contact",       action:onHelpSupport},
-    {icon:Info,       label:"About EthioExam", sub:"Version 2.1.0",       action:onAbout},
+    {icon:Info,       label:"About ExamPlus", sub:"Version 2.1.0",       action:onAbout},
   ];
   const [stats,setStats]=useState<ExamStats>({examsDone:0,avgScore:0,bestScore:0});
   const [streak,setStreak]=useState(0);
