@@ -1,5 +1,15 @@
 // Preserve the existing quiz data format while isolating accounts on this device.
 const keys = ['studyDays','recentExams','examHistory','dailyGoal','lastPaper','quizProgress'];
+export function clearDeletedStudyAccount(id: string) {
+  const active = localStorage.getItem('studyAccountOwner') === id;
+  for (const key of keys) {
+    localStorage.removeItem(`${key}:${id}`);
+    if (active) localStorage.removeItem(key);
+  }
+  if (active) {
+    for (const key of ['studyAccountOwner', 'userName', 'userPhone', 'userPassword']) localStorage.removeItem(key);
+  }
+}
 export function activateStudyAccount(id: string) {
   const previous = localStorage.getItem('studyAccountOwner');
   if (previous === id) return;
