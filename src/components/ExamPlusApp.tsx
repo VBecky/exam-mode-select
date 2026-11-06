@@ -772,7 +772,8 @@ function NotificationsScreen({onBack}:{onBack:()=>void}) {
   const timeAgo=(iso:string)=>{const m=Math.floor((Date.now()-new Date(iso).getTime())/60000);if(m<1)return "now";if(m<60)return `${m}m ago`;const h=Math.floor(m/60);if(h<24)return `${h}h ago`;const d=Math.floor(h/24);return d<7?`${d}d ago`:new Date(iso).toLocaleDateString();};
   const firstOpenedAt=(()=>{try{return localStorage.getItem("firstOpenedAt");}catch{return null;}})();
   const WELCOME_ID="93087719-9a7f-4427-aa53-3b22f78ff501";
-  const notifications=(items??[]).map(n=>({...n,time:timeAgo(n.id===WELCOME_ID&&firstOpenedAt?firstOpenedAt:n.published_at),read:readIds.includes(n.id)}));
+  const brand=(t:string)=>t.replace(/EthioExam/g,"ExamPlus");
+  const notifications=(items??[]).map(n=>({...n,title:brand(n.title),body:brand(n.body),time:timeAgo(n.id===WELCOME_ID&&firstOpenedAt?firstOpenedAt:n.published_at),read:readIds.includes(n.id)}));
   const setNotifications=(f:(p:typeof notifications)=>typeof notifications)=>saveRead(f(notifications).filter(n=>n.read).map(n=>n.id));
   const unreadCount=notifications.filter(n=>!n.read).length;
 
