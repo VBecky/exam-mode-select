@@ -14,3 +14,4 @@ export const accountSchema = profileSchema.extend({ phone: z.union([z.literal(''
 export const signupSchema = profileSchema.pick({ name: true }).extend({ email: emailSchema, password: passwordSchema });
 export const loginSchema = z.object({ email: emailSchema, password: z.string().min(1, 'Enter your password.').max(128) });
 export const changePasswordSchema = z.object({ current: z.string().min(1, 'Enter your current password.'), password: passwordSchema, confirm: z.string() }).refine(v => v.password === v.confirm, { message: 'Passwords do not match.', path: ['confirm'] });
+export const deleteAccountSchema = z.object({ password: z.string().min(1, 'Enter your password to delete your account.').max(128), confirmation: z.literal('DELETE') }).strict();

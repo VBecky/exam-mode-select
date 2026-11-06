@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
-import { accountSchema } from './account-validation';
+import { accountSchema, deleteAccountSchema } from './account-validation';
 
 export const getAccount = createServerFn({ method: 'GET' }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   const { data: auth, error: authError } = await context.supabase.auth.getUser();
@@ -16,3 +16,25 @@ export const saveAccount = createServerFn({ method: 'POST' }).middleware([requir
   if (error) throw new Error('Unable to save your account. Please try again.');
   return profile;
 });
+
+export const deleteAccount = createServerFn({ method: 'POST' })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => deleteAccountSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { deleteVerifiedAccount } = await import('./account-deletion.server');
+    return deleteVerifiedAccount(context.userId, data.password, {
+      getUser: async () => {
+        const { data: auth, error } = await context.supabase.auth.getUser();
+        return error ? null : auth.user;
+      },
+      verifyPassword: async (email, password) => {
+        const { data: auth, error } = await context.supabase.auth.signInWithPassword({ email, password });
+        return error ? null : auth.user?.id ?? null;
+      },
+      deleteUser: async id => {
+        const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+        const { error } = await supabaseAdmin.auth.admin.deleteUser(id);
+        if (error) throw new Error('Unable to delete your account. Please try again.');
+      },
+    });
+  });

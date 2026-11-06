@@ -1,9 +1,12 @@
 import { useState, type FormEvent } from 'react';
-import { ArrowLeft, Save, Lock, CheckCheck, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Lock, CheckCheck, Loader2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAccount } from './AccountProvider';
 import { PasswordField, accountInput } from './AuthScreen';
-import { saveAccount } from '@/lib/account.functions';
+import { saveAccount, deleteAccount } from '@/lib/account.functions';
+import { useServerFn } from '@tanstack/react-start';
+import { clearDeletedStudyAccount } from '@/lib/study-account';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { accountSchema, changePasswordSchema } from '@/lib/account-validation';
 
@@ -15,6 +18,23 @@ export default function AccountSettingsScreen({onBack,onSaved,onStreamChange,cur
   const [changePassword,setChangePassword]=useState(false); const [current,setCurrent]=useState(''); const [password,setPassword]=useState(''); const [confirm,setConfirm]=useState('');
   const [busy,setBusy]=useState(false); const [error,setError]=useState(''); const [notice,setNotice]=useState('');
   const [passwordBusy,setPasswordBusy]=useState(false); const [passwordError,setPasswordError]=useState(''); const [passwordNotice,setPasswordNotice]=useState('');
+  const [deleteOpen,setDeleteOpen]=useState(false); const [deletePassword,setDeletePassword]=useState('');
+  const [deleteBusy,setDeleteBusy]=useState(false); const [deleteError,setDeleteError]=useState('');
+  const deleteAccountFn=useServerFn(deleteAccount);
+  async function removeAccount(event:FormEvent) {
+    event.preventDefault();
+    if(!user || deleteBusy) return;
+    setDeleteBusy(true);setDeleteError('');
+    try {
+      await deleteAccountFn({data:{password:deletePassword,confirmation:'DELETE'}});
+    } catch(err) {
+      setDeleteError(err instanceof Error?err.message:'Unable to delete your account. Please try again.');
+      setDeleteBusy(false);return;
+    }
+    try { clearDeletedStudyAccount(user.id); } catch {}
+    await supabase.auth.signOut({scope:'local'}).catch(()=>undefined);
+    window.location.replace('/');
+  }
   async function save(event:FormEvent) {
     event.preventDefault();setError('');setNotice('');
     if(!user){setError(signInMsg);return;}
@@ -57,5 +77,16 @@ export default function AccountSettingsScreen({onBack,onSaved,onStreamChange,cur
     </form>
     <div className="border-t border-border pt-5"><Button type="button" variant="outline" className="w-full justify-start h-11" aria-expanded={changePassword} onClick={()=>setChangePassword(!changePassword)}><Lock/>Change password</Button>
     {changePassword&&<form onSubmit={updatePassword} className="space-y-4 mt-5"><PasswordField id="current-password" label="Current password" value={current} onChange={setCurrent} autoComplete="current-password"/><PasswordField id="new-password" label="New password" value={password} onChange={setPassword}/><PasswordField id="confirm-password" label="Confirm new password" value={confirm} onChange={setConfirm}/>{passwordError&&<p role="alert" className="text-sm text-destructive">{passwordError}</p>}{passwordNotice&&<p role="status" className="text-sm text-activity">{passwordNotice}</p>}<Button type="submit" disabled={passwordBusy} className="w-full h-11">{passwordBusy?<Loader2 className="animate-spin"/>:<Lock/>}Update password</Button></form>}</div>
+    {user&&<div className="border-t border-border pt-5"><Button type="button" variant="outline" className="w-full justify-start h-11 text-destructive" onClick={()=>{setDeletePassword('');setDeleteError('');setDeleteOpen(true);}}><Trash2/>Delete Account</Button></div>}
+    <AlertDialog open={deleteOpen} onOpenChange={open=>{if(!deleteBusy)setDeleteOpen(open);}}>
+      <AlertDialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md rounded-lg">
+        <AlertDialogHeader><AlertDialogTitle>Delete your account?</AlertDialogTitle><AlertDialogDescription>Your account and profile will be permanently deleted, along with your saved study progress on this device. This cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+        <form onSubmit={removeAccount} className="space-y-4">
+          <PasswordField id="delete-account-password" label="Confirm your password" value={deletePassword} onChange={setDeletePassword} autoComplete="current-password"/>
+          {deleteError&&<p role="alert" className="text-sm text-destructive">{deleteError}</p>}
+          <AlertDialogFooter><Button type="button" variant="outline" disabled={deleteBusy} onClick={()=>setDeleteOpen(false)}>Cancel</Button><Button type="submit" variant="destructive" disabled={deleteBusy||!deletePassword}>{deleteBusy?<Loader2 className="animate-spin"/>:<Trash2/>}{deleteBusy?'Deleting…':'Delete permanently'}</Button></AlertDialogFooter>
+        </form>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>;
 }
