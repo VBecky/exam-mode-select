@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import EthioExamApp from "@/components/EthioExamApp";
+import ExamPlusApp from "@/components/ExamPlusApp";
 import { loadRemoteQuestions } from "@/lib/exam-questions";
 import { useAccount } from "@/components/AccountProvider";
 import { Button } from "@/components/ui/button";
@@ -9,13 +9,13 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "EthioExam — Ethiopian Grade 12 Matric Exam Practice" },
+      { title: "ExamPlus — Ethiopian Grade 12 Matric Exam Practice" },
       {
         name: "description",
         content:
           "Practice Ethiopian Grade 12 national exam papers by subject and year, with practice mode feedback, timed exam mode, and progress tracking.",
       },
-      { property: "og:title", content: "EthioExam — Ethiopian Grade 12 Matric Exam Practice" },
+      { property: "og:title", content: "ExamPlus — Ethiopian Grade 12 Matric Exam Practice" },
       {
         property: "og:description",
         content:
@@ -41,7 +41,7 @@ function Index() {
     };
   }, []);
 
-  if (!ready || loading) return <div className="min-h-dvh bg-background" aria-label="Loading EthioExam" />;
+  if (!ready || loading) return <div className="min-h-dvh bg-background" aria-label="Loading ExamPlus" />;
   if (user && (!profile || error)) return <main className="min-h-dvh bg-background text-foreground flex flex-col items-center justify-center gap-4 px-6"><p role="alert">{error||'Your account could not be loaded.'}</p><Button onClick={()=>void reload()}>Try again</Button><Button variant="outline" onClick={()=>void signOut()}>Sign out</Button></main>;
-  return <EthioExamApp key={user?.id ?? 'guest'} />;
+  return <ExamPlusApp key={user?.id ?? 'guest'} />;
 }

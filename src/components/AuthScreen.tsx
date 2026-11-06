@@ -61,7 +61,7 @@ export default function AuthScreen() {
         <motion.div aria-hidden className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-primary-foreground/10" animate={{scale:[1,1.15,1]}} transition={{duration:6,repeat:Infinity}}/>
         <motion.div aria-hidden className="absolute bottom-0 -left-12 w-32 h-32 rounded-full bg-primary-foreground/10" animate={{scale:[1.1,1,1.1]}} transition={{duration:7,repeat:Infinity}}/>
         <div className="relative flex items-center justify-between">
-          <div className="flex items-center gap-2.5"><div className="bg-primary-foreground/20 p-2.5 rounded-2xl backdrop-blur"><BookOpen size={22}/></div><span className="text-xl font-bold">EthioExam</span></div>
+          <div className="flex items-center gap-2.5"><div className="bg-primary-foreground/20 p-2.5 rounded-2xl backdrop-blur"><BookOpen size={22}/></div><span className="text-xl font-bold">ExamPlus</span></div>
           <a href="/" aria-label="Skip and continue as guest" className="flex items-center gap-1 text-xs font-semibold bg-primary-foreground/15 rounded-full px-3 py-1.5">Skip<X size={14}/></a>
         </div>
         <AnimatePresence mode="wait">
